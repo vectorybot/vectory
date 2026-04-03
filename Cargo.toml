@@ -1,0 +1,40 @@
+[workspace]
+members = ["crates/types", "crates/twitter-api"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+
+[workspace.dependencies]
+vectory-types = { path = "crates/types" }
+twitter-api = { path = "crates/twitter-api" }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Crypto
+sha2 = "0.10"
+hex = "0.4"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# HTTP
+reqwest = { version = "0.12", features = ["json"] }
+
+# Error handling
+thiserror = "2.0"
+eyre = "0.6"
+
+# OAuth 1.0a
+hmac = "0.12"
+sha1 = "0.10"
+base64 = "0.22"
+rand = "0.8"
+urlencoding = "2.1"
+
+# Misc
+uuid = { version = "1.0", features = ["v4", "serde"] }
