@@ -3,6 +3,7 @@ mod config;
 mod predictions;
 mod reveal;
 mod rounds;
+mod verify;
 
 use clap::{Parser, Subcommand};
 use eyre::Result;
@@ -58,6 +59,12 @@ enum Command {
 
     /// Show a saved prediction
     Show {
+        /// Round ID
+        round_id: String,
+    },
+
+    /// Verify that a round was scored correctly
+    Verify {
         /// Round ID
         round_id: String,
     },
@@ -133,6 +140,10 @@ async fn main() -> Result<()> {
                     println!("No saved prediction for round {}", round_id);
                 }
             }
+        }
+
+        Command::Verify { round_id } => {
+            verify::verify(&config, &round_id).await?;
         }
 
         Command::Hash { prediction, salt } => {
