@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/types", "crates/twitter-api"]
+members = ["crates/types", "crates/twitter-api", "bin/vectory"]
 resolver = "2"
 
 [workspace.package]
