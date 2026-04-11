@@ -1,4 +1,4 @@
-//! Twitter API client library for Cliptions
+//! Twitter API client library for Vectory
 //!
 //! Provides a high-level async interface for Twitter API v2 operations
 //! including posting tweets, uploading images, and retrieving user data.
@@ -813,7 +813,7 @@ mod tests {
     async fn test_mock_post_tweet() {
         let mut mock_client = MockTwitterApiClient::new();
 
-        let tweet_text = "Hello from Cliptions!";
+        let tweet_text = "Hello from Vectory!";
         let expected_tweet = Tweet {
             id: "12345".to_string(),
             text: tweet_text.to_string(),
