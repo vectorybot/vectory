@@ -109,9 +109,9 @@ s:<your salt>
 
 ## Important Rules
 
-### Use the Player CLI, Not the Validator
+### Use the Player CLI
 
-The `vectory` binary in this repo is the **player CLI**. The validator has a separate binary in a private repo (`vectory-internal`). Never use the validator binary for player actions — it will post tweets from `@vectorybot` instead of your account.
+The `vectory` binary in this repo is the **player CLI**. Always use this binary for player actions — using any other vectory binary may post tweets from the wrong account.
 
 ### Config Isolation
 
@@ -143,32 +143,25 @@ The validator collector searches replies, quotes, mentions, hashtags, and player
 
 ## CLI Commands
 
+### Round Commands
+
 | Command | Description |
 |---------|-------------|
-| `rounds` | List active rounds from the validator |
+| `rounds` | List active rounds |
 | `commit` | Generate hash, save prediction, post commitment tweet |
 | `reveal` | Load saved prediction, post reveal tweet |
-| `verify` | Verify round scoring (hashes, cosine similarity, softmax) |
-| `results` | Fetch round results from Supabase |
+| `results` | Fetch round results |
+| `verify` | Verify round scoring independently |
 | `show` | Display your saved prediction for a round |
 | `hash` | Compute commitment hash offline (no tweet posted) |
+
+### Twitter Utilities
+
+| Command | Description |
+|---------|-------------|
 | `tweet` | Post a standalone tweet |
 | `quote` | Quote-tweet another tweet |
 | `reply` | Reply to a tweet |
-
-## Project Structure
-
-```
-vectory/
-├── bin/vectory/     # Player CLI binary
-├── crates/
-│   ├── types/       # Shared types (round types, commitment hashing, scoring)
-│   └── twitter-api/ # OAuth 1.0a Twitter client
-├── AGENTS.md        # Developer guidelines
-├── STATUS.md        # Current capabilities and known gaps
-├── THESIS.md        # Product thesis and architecture
-└── README.md        # This file — player onboarding
-```
 
 ## Scoring
 
