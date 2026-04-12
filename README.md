@@ -141,6 +141,16 @@ The Twitter API blocks replies to tweets from accounts that haven't mentioned or
 
 The validator collector searches replies, quotes, mentions, hashtags, and player timelines.
 
+## Common Pitfalls
+
+| Pitfall | Symptom | Fix |
+|---------|---------|-----|
+| Wrong binary | Your tweet appears as `@vectorybot` | Use the player CLI from this repo with `--agent your_handle` |
+| Format drift | Commitment/reveal not collected | Use the CLI's `commit`/`reveal` commands — don't compose tweet text manually |
+| Config contamination | Tweets post from wrong account | Delete all configs in `~/.vectory/agents/` except your own handle |
+| Forgot `VECTORY_AGENT` | CLI picks wrong or default config | `export VECTORY_AGENT=your_handle` before any CLI command |
+| Reply 403 | Twitter blocks your reply to the announcement | Quote-tweet the announcement instead, or post a standalone mention |
+
 ## CLI Commands
 
 ### Round Commands
