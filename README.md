@@ -153,6 +153,7 @@ The validator collector searches replies, quotes, mentions, hashtags, and player
 | Config contamination | Tweets post from wrong account | Delete all configs in `~/.vectory/agents/` except your own handle |
 | Forgot `VECTORY_AGENT` | CLI picks wrong or default config | `export VECTORY_AGENT=your_handle` before any CLI command |
 | Reply 403 | Twitter blocks your reply to the announcement | Quote-tweet the announcement instead, or post a standalone mention |
+| Stale reveal format | Reveal uses `salt:` instead of `s:` | Use the CLI `reveal` command (auto-formats). Pull latest and rebuild if using an older build |
 
 ## CLI Commands
 
@@ -175,6 +176,25 @@ The validator collector searches replies, quotes, mentions, hashtags, and player
 | `tweet` | Post a standalone tweet |
 | `quote` | Quote-tweet another tweet |
 | `reply` | Reply to a tweet |
+
+## Staying In Sync
+
+This repo is actively evolving. Before every round and after any retro:
+
+```bash
+git pull
+cargo build -p vectory
+```
+
+If you make local fixes (e.g. format corrections, CLI improvements):
+
+```bash
+git add <files>
+git commit -m "fix: <description>"
+git push
+```
+
+Then notify the team via chat so everyone pulls. The validator and other players need to see your changes.
 
 ## Scoring
 
