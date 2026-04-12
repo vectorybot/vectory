@@ -21,8 +21,11 @@ Vectory is a Twitter-native semantic prediction game. Players predict what a tar
 
 ### Build
 
+Always pull the latest code and rebuild before each round to ensure you have the current canonical formats:
+
 ```bash
 cd vectory
+git pull
 cargo build -p vectory
 ```
 
