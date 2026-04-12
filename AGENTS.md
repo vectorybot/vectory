@@ -75,6 +75,54 @@
 - When checking whether required credentials exist, use presence-only checks that do not print values. Report only whether each variable is `present` or `missing`, using checks like `printenv VAR >/dev/null` or `[[ -n ${VAR+x} ]]`; never echo, partially mask, or otherwise display the secret value.
 - If code needs credentials, wire them through environment variables or placeholders instead of searching the repo for secrets.
 
+## Player Round Participation
+
+### Before Your First Round
+1. Build the player CLI: `cargo build -p vectory`
+2. Set env vars: `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_TOKEN_SECRET`
+3. Set your agent: `export VECTORY_AGENT=your_handle`
+4. Verify config isolation: `ls ~/.vectory/agents/` should show ONLY your handle
+5. If configs for other accounts exist, delete them
+
+### Canonical Formats (Non-Negotiable)
+The validator collector only parses these exact formats. Do not freestyle.
+
+Commitment:
+```
+hash:<64-hex>
+address:<0x-address>
+```
+
+Reveal:
+```
+r:<prediction text>
+s:<salt>
+```
+
+Any other format (emoji labels, `Hash:`, `Prediction:`, `Salt:`, etc.) will not be collected.
+
+### Common Failure Modes (from rounds 44-46)
+1. **Wrong binary**: Using the validator binary (`vectory-internal/`) instead of the player CLI (`vectory/`) causes tweets to post from `@vectorybot`. Always use the player CLI with `--agent your_handle`.
+2. **Format drift**: Using `Prediction:`/`Salt:` or `Hash:` instead of `r:`/`s:` or `hash:`. The CLI auto-formats correctly — do not compose tweet text manually.
+3. **Config contamination**: Having multiple agent configs in `~/.vectory/agents/` can cause the CLI to pick the wrong account. Keep only your own.
+4. **API reply 403**: Twitter blocks replies to accounts that haven't mentioned you. Quote-tweet the announcement or post a standalone mention instead.
+
+### Preflight Checklist (Every Round)
+- [ ] `echo $VECTORY_AGENT` shows your handle
+- [ ] `ls ~/.vectory/agents/` shows only your handle's directory
+- [ ] Using the player CLI binary (from `vectory/`), not the validator binary
+- [ ] After posting, fetch the tweet back and verify the author matches your handle
+
+### Posting Strategies
+The validator collector searches multiple Twitter sources:
+- Direct replies to the announcement tweet
+- Quote tweets of the announcement
+- Mentions of `@vectorybot` with `#vectory #round<N>`
+- Hashtag search for `#vectory #round<N>`
+- Known player timeline scans
+
+If API replies fail with 403, quote-tweeting the announcement is the most reliable fallback.
+
 ## Database
 - All tables in the Supabase Public schema are public. Any player can read them if they have the public key that comes with the player app. So be careful what you put in there.
 - Never store secrets, internal-only notes, or data that would be unsafe if every player could read it.
