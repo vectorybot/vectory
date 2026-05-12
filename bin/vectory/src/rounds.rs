@@ -56,7 +56,10 @@ pub async fn check_rounds(config: &PlayerConfig) -> Result<()> {
     }
 
     if !found_rounds {
-        println!("No #vectory rounds found in recent tweets from @{}", username);
+        println!(
+            "No #vectory rounds found in recent tweets from @{}",
+            username
+        );
     }
 
     Ok(())
@@ -76,7 +79,9 @@ pub async fn check_results(config: &PlayerConfig, round_id: &str) -> Result<()> 
         .supabase_anon_key
         .clone()
         .or_else(|| std::env::var("SUPABASE_ANON_KEY").ok())
-        .ok_or_else(|| eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var"))?;
+        .ok_or_else(|| {
+            eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var")
+        })?;
 
     let client = reqwest::Client::new();
     let resp = client

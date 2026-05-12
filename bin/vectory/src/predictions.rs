@@ -54,8 +54,7 @@ pub fn save(agent_name: &str, record: &PredictionRecord) -> Result<PathBuf> {
         .wrap_err_with(|| format!("Failed to create {}", dir.display()))?;
     let path = prediction_path(agent_name, &record.round_id);
     let data = serde_json::to_string_pretty(record)?;
-    std::fs::write(&path, data)
-        .wrap_err_with(|| format!("Failed to write {}", path.display()))?;
+    std::fs::write(&path, data).wrap_err_with(|| format!("Failed to write {}", path.display()))?;
     Ok(path)
 }
 

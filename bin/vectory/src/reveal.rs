@@ -13,8 +13,9 @@ pub async fn reveal(
     round_id: &str,
     tweet_id: &str,
 ) -> Result<()> {
-    let record = predictions::load(agent_name, round_id)?
-        .ok_or_else(|| eyre::eyre!("No saved prediction for round {round_id}. Did you commit first?"))?;
+    let record = predictions::load(agent_name, round_id)?.ok_or_else(|| {
+        eyre::eyre!("No saved prediction for round {round_id}. Did you commit first?")
+    })?;
 
     if record.reveal.is_some() {
         println!("Already revealed for round {}:", round_id);
@@ -24,7 +25,10 @@ pub async fn reveal(
     }
 
     if record.commitment.is_none() {
-        println!("Warning: no commitment tweet recorded for round {}. Revealing anyway.", round_id);
+        println!(
+            "Warning: no commitment tweet recorded for round {}. Revealing anyway.",
+            round_id
+        );
     }
 
     // Build reveal tweet text

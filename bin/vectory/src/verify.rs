@@ -97,7 +97,9 @@ pub async fn verify(config: &PlayerConfig, round_id: &str) -> Result<()> {
         .supabase_anon_key
         .clone()
         .or_else(|| std::env::var("SUPABASE_ANON_KEY").ok())
-        .ok_or_else(|| eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var"))?;
+        .ok_or_else(|| {
+            eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var")
+        })?;
 
     let db = SupabaseClient::new(url, anon_key);
 
@@ -158,7 +160,10 @@ pub async fn verify(config: &PlayerConfig, round_id: &str) -> Result<()> {
     let reveals_arr = reveals.as_array().unwrap_or(&empty);
 
     if reveals_arr.is_empty() {
-        println!("No reveals found for round {}. Nothing to verify.", round_id);
+        println!(
+            "No reveals found for round {}. Nothing to verify.",
+            round_id
+        );
         return Ok(());
     }
 
@@ -187,7 +192,11 @@ pub async fn verify(config: &PlayerConfig, round_id: &str) -> Result<()> {
             all_hashes_ok = false;
         }
 
-        print!("  {} — hash: {}", player, if hash_ok { "OK" } else { "MISMATCH" });
+        print!(
+            "  {} — hash: {}",
+            player,
+            if hash_ok { "OK" } else { "MISMATCH" }
+        );
 
         // Cosine similarity verification
         let reveal_embedding = reveal["embedding"].as_str().and_then(parse_pgvector);

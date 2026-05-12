@@ -421,7 +421,7 @@ impl TwitterClient {
             _ => {
                 return Err(TwitterError::FileError(
                     "Unsupported image format. Supported: jpg, png, gif, webp".to_string(),
-                ))
+                ));
             }
         };
 
@@ -642,7 +642,7 @@ impl TwitterClient {
                 return Err(TwitterError::AuthError(format!(
                     "Unsupported HTTP method: {}",
                     method
-                )))
+                )));
             }
         };
 

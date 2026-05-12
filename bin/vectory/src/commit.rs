@@ -41,7 +41,10 @@ pub async fn commit(
             println!("  tweet: {}", existing.commitment.unwrap().tweet_id);
             return Ok(());
         }
-        println!("Draft exists for round {} but not yet posted. Re-posting.", round_id);
+        println!(
+            "Draft exists for round {} but not yet posted. Re-posting.",
+            round_id
+        );
     }
 
     let salt = salt.map(String::from).unwrap_or_else(generate_salt);
@@ -61,10 +64,7 @@ pub async fn commit(
     println!("Prediction saved to {}", path.display());
 
     // Build commitment tweet text
-    let text = format!(
-        "hash:{}\naddress:{}",
-        hash, config.game.base_wallet_address
-    );
+    let text = format!("hash:{}\naddress:{}", hash, config.game.base_wallet_address);
 
     println!("Posting commitment for round {}...", round_id);
     let client = config.twitter_client();
