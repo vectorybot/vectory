@@ -1,0 +1,371 @@
+#+TITLE: Vectory - Project Status
+#+TODO: TODO NEXT INPROGRESS WAITING BLOCKED | DONE CANCELLED
+#+TODO: OPEN_QUESTION WAITING_ANSWER | ANSWERED DROPPED
+#+ARCHIVE: PROJECT_STATUS_ARCHIVE.org::* Archived
+
+* Operating Rules
+- This file is the canonical live operating state for Vectory.
+- If Org mode syntax is unclear, consult the official Org manual: https://orgmode.org/manual/index.html
+- Use this file for active todos, blockers, waiting items, bugs, and open questions.
+- Keep durable product thesis and architecture guardrails in =THESIS.md=.
+- Keep player-facing onboarding and command instructions in =README.md=.
+- Archive closed or stale items to =PROJECT_STATUS_ARCHIVE.org= during cleanup; active todos, blockers, waiting items, and open questions must stay in this file.
+- Keep only a short =Recently Closed= section here when a closed item is useful for immediate continuity.
+
+* Current State
+- Player CLI (=bin/vectory/=) is the active player entrypoint.
+- New public prediction flow uses a native Vectory wallet, a signed canonical prediction payload, and a SHA-256 proof-of-work nonce.
+- =vectory predict= derives the active round from Supabase for now; rounds are still manually announced.
+- =vectory predict= prints tweet text by default for manual copy/paste posting.
+- =vectory predict --post= uses Twitter API credentials from either =config.yaml= or =TWITTER_*= environment variables.
+- Legacy hidden commit/reveal commands remain for old rounds, but new public prediction work should use =wallet= and =predict=.
+
+* Active Priorities
+** NEXT Manual smoke test public prediction CLI MVP :cli:wallet:pow:
+:PROPERTIES:
+:OWNER: David / Codex
+:SOURCE: User instruction, 2026-05-12
+:NEXT_ACTION: Do a human manual smoke test with a clean agent, public Supabase config, wallet creation, prediction text generation, and manual Twitter/X paste before asking players to use it.
+:IMPACT: Lets players generate public prediction commitments without Twitter API keys while still supporting direct API posting.
+:END:
+
+** NEXT Add validator collection for public prediction commitments :validator:ingestion:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Public prediction protocol direction, 2026-05-12
+:NEXT_ACTION: Teach the validator to collect canonical =r:/t:/p:/w:/m:/n:/s:= tweets from replies, quotes, mentions, hashtags, and known player timelines.
+:IMPACT: Turns player-posted public predictions into accepted game entries.
+:END:
+
+** NEXT Add signed native =$VEC= checkpoints :vec:rewards:chain_mvp:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Signed checkpoint MVP direction, 2026-05-12
+:NEXT_ACTION: Define the minimal checkpoint payload, validator signature, reward pool allocation, and player verification command.
+:IMPACT: Lets players earn internally minted =$VEC= that can remain spendable when the full chain is integrated later.
+:END:
+
+** TODO Revise round commands for public prediction rounds :cli:rounds:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Public prediction flow replacing commit/reveal phases
+:NEXT_ACTION: Replace commit/reveal phase language with manually announced public prediction round status once validator/database semantics are stable.
+:IMPACT: Avoids confusing players with obsolete "commitments open" and "reveals open" language.
+:END:
+
+** TODO Add X Web Intent posting flow for smoother UX :ux:posting:future:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: OAuth posting UX discussion, 2026-05-12
+:NEXT_ACTION: Add a CLI option that generates a =https://twitter.com/intent/tweet?text=...= URL containing the canonical prediction payload, so the player publishes from their own X client in one click. Considered as an alternative to OAuth 2.0 PKCE on-behalf-of posting; web intents avoid token storage, refresh handling, and per-post X API write fees while still letting the player tweet from their own handle. OAuth 2.0 PKCE was rejected for now because X bills the developer account per API write regardless of authentication context, so it would not have reduced costs and added meaningful integration overhead.
+:IMPACT: Lowers the friction floor for players who do not want to configure Twitter API credentials, without changing the validator's handle-based identity binding.
+:END:
+
+* Bugs / QA Issues
+** TODO Manual smoke test no-Twitter-key onboarding :qa:manual_path:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: README two-path onboarding change, 2026-05-12
+:NEXT_ACTION: On a clean agent name, run =wallet create=, =wallet address=, and =predict= without Twitter credentials against an active Supabase round; manually paste the result into Twitter/X.
+:IMPACT: Proves the new default path works for players who will not configure Twitter API credentials.
+:END:
+
+** TODO API posting smoke test with current OAuth credentials :qa:api_path:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: README two-path onboarding change, 2026-05-12
+:NEXT_ACTION: Run =predict --post= with a test round and verify the posted tweet author, body, local receipt, and discovery path.
+:IMPACT: Confirms the optional direct-post path still works after removing hidden commit/reveal as the default flow.
+:END:
+
+** TODO Add broader CLI/network coverage :testing:
+:PROPERTIES:
+:OWNER: David / Codex
+:SOURCE: Current test coverage gap
+:NEXT_ACTION: Add tests around config fallback, tweet text size failures, and Supabase active-round errors without hitting live network.
+:IMPACT: Reduces regressions in player onboarding paths.
+:END:
+
+* Blocked
+** BLOCKED Public prediction rewards are not checkpointed yet :vec:rewards:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Current MVP gap
+:NEXT_ACTION: Unblocked by signed =$VEC= checkpoint payload and validator reward settlement implementation.
+:IMPACT: Players can create accepted prediction entries before they can verify or spend earned native =$VEC=.
+:END:
+
+** BLOCKED Public prediction settlement is not implemented yet :validator:scoring:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Current MVP gap
+:NEXT_ACTION: Unblocked by validator collection, accepted-prediction schema, scoring, and shared reward pool allocation.
+:IMPACT: Public predictions can be posted but are not yet collected, scored, or paid by the validator.
+:END:
+
+* Open Questions
+** OPEN_QUESTION What exact Supabase status names should public rounds use? :database:rounds:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Temporary compatibility with legacy =commitmentsopen=
+:NEXT_ACTION: Pick the canonical public-round statuses before changing validator/database writes.
+:IMPACT: Simplifies active-round lookup and removes legacy terminology from new code.
+:END:
+
+** OPEN_QUESTION Should the validator require predictions to quote/reply to the announcement? :twitter:discovery:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Manual posting path
+:NEXT_ACTION: Decide whether standalone timeline discovery is enough or whether every accepted prediction must be connected to the announcement tweet.
+:IMPACT: Affects player instructions, validator collector reliability, and virality.
+:END:
+
+** OPEN_QUESTION What proof-of-work difficulty should public rounds require? :pow:spam:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Initial CLI default uses 16 leading zero bits
+:NEXT_ACTION: Adjust after early player tests show whether mining time and spam reduction are acceptable.
+:IMPACT: Balances friction against spam resistance.
+:END:
+
+** OPEN_QUESTION Should full prediction text eventually live onchain? :chain:prediction_payload:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_public_predicions_for_simplicity_and_virality.md=
+:NEXT_ACTION: Decide whether the chain stores full prediction text or only a hash while full text remains on Twitter/X.
+:IMPACT: Affects chain storage cost, censorship resistance, verification UX, and replay/migration semantics.
+:END:
+
+** OPEN_QUESTION Which hash function should anchor prediction payloads? :pow:chain_compatibility:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_public_predicions_for_simplicity_and_virality.md=
+:NEXT_ACTION: Decide whether SHA-256 remains canonical or whether Keccak-256 is needed for EVM compatibility.
+:IMPACT: Locks down PoW verification, payload hashes, and future chain compatibility.
+:END:
+
+** OPEN_QUESTION How should early-conviction multiplier work? :scoring:timing:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_public_predicions_for_simplicity_and_virality.md=
+:NEXT_ACTION: Choose linear decay, exponential decay, step buckets, or no multiplier for the first public rounds.
+:IMPACT: Determines how much earlier public commitments are rewarded relative to late copying.
+:END:
+
+** OPEN_QUESTION What target-account spam controls are needed? :spam:targets:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_public_predicions_for_simplicity_and_virality.md=
+:NEXT_ACTION: Decide whether PoW cost alone is enough or whether follower thresholds, allowlists, denylists, or reputation are needed.
+:IMPACT: Prevents noisy target selection without overcomplicating early gameplay.
+:END:
+
+** OPEN_QUESTION What anti-Sybil identity rule should bind Twitter users and wallets? :identity:spam:wallets:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: Wallet-only spam concern, 2026-05-13
+:NEXT_ACTION: Decide the MVP rule for registered Twitter user id/handle, native wallet, wallet rotation, duplicate submissions, and whether per-handle or reputation limits are needed beyond PoW.
+:IMPACT: Wallets are cheap to create, so wallet-only identity would let one player create many wallets and bypass per-wallet limits, reward accounting, or spam controls.
+:END:
+
+** OPEN_QUESTION Should private commit-reveal remain as a future optional mode? :protocol:legacy:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_public_predicions_for_simplicity_and_virality.md=
+:NEXT_ACTION: Decide after public prediction playtests whether private rounds are worth keeping as a separate mode.
+:IMPACT: Affects whether legacy commit/reveal code is maintained or eventually removed.
+:END:
+
+** OPEN_QUESTION What scoring spec data is required to reproduce old rounds? :scoring:reproducibility:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_public_predicions_for_simplicity_and_virality.md=
+:NEXT_ACTION: Define the minimum archived fields for old-round replay: embedding model, model version, canonicalization rules, scoring formula, timestamp rules, and payout formula.
+:IMPACT: Determines whether legacy rounds can remain auditable after protocol changes.
+:END:
+
+** OPEN_QUESTION Which embedding model is canonical for v0.1? :semantic_digest:model:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Decide whether v0.1 canonicalizes on BGE-M3 or a smaller/faster model.
+:IMPACT: Locks down scorer reproducibility, runtime cost, and compatibility with existing scoring assumptions.
+:END:
+
+** OPEN_QUESTION What quantization format should semantic digests use? :semantic_digest:quantization:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Choose quantization scale and integer width, then document whether scoring uses quantized vectors only or floats plus quantized audit artifacts.
+:IMPACT: Determines stability, scoring fidelity, artifact size, and independent verification burden.
+:END:
+
+** OPEN_QUESTION What text normalization rules are canonical? :semantic_digest:normalization:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Define exact handling for Unicode normalization, URLs, mentions, hashtags, emojis, quote tweets, media captions, and visible text.
+:IMPACT: Prevents scorer drift and disputes about what text was actually scored.
+:END:
+
+** OPEN_QUESTION Where should full scoring artifacts live? :artifacts:storage:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Choose GitHub, S3, IPFS, Arweave, database storage, or a staged combination for round manifests, scoring artifacts, and checkpoints.
+:IMPACT: Affects durability, public auditability, and future chain migration.
+:END:
+
+** OPEN_QUESTION What is the dispute or challenge process? :governance:scoring:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Define how players challenge scorer output, artifact errors, deleted/edited tweets, or unacceptable nondeterminism.
+:IMPACT: Gives early rewards a credible correction path before decentralized validation exists.
+:END:
+
+** OPEN_QUESTION When should semantic digests be public? :semantic_digest:visibility:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Decide whether semantic digests are published before reveal, after reveal, or only in final artifacts under the public prediction protocol.
+:IMPACT: Affects transparency, copyability, and verifier UX.
+:END:
+
+** OPEN_QUESTION Should players ever submit semantic digests directly? :semantic_digest:player_inputs:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Decide whether player-authored predicted semantic digests are useful later or whether prediction text remains the only player input.
+:IMPACT: Affects protocol complexity and whether players can bypass text-level prediction UX.
+:END:
+
+** OPEN_QUESTION What public round mechanics are canonical? :product:rounds:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =THESIS.md=
+:NEXT_ACTION: Define target format, prediction window, target expiry, payout structure, treasury flow, and which milestones are mirrored publicly.
+:IMPACT: Converts the product thesis into round rules that players, validators, and docs can all follow.
+:END:
+
+** OPEN_QUESTION What internal event/projection stack should Vectory use? :architecture:event_log:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =THESIS.md=
+:NEXT_ACTION: Pick the event log technology, projection database design, retry semantics, and normalized projection models for rounds, predictions, scores, payouts, and social posts.
+:IMPACT: Determines how reliably Twitter-visible gameplay is collected, replayed, debugged, and settled.
+:END:
+
+** OPEN_QUESTION What Twitter/X ingestion boundary is canonical? :twitter:ingestion:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =THESIS.md=
+:NEXT_ACTION: Specify how round threads are identified, which sources are fetched, how relevant tweets are parsed, and how tweet metadata maps to domain events.
+:IMPACT: Prevents collector drift and wrong-tweet acceptance as the public prediction format changes.
+:END:
+
+** OPEN_QUESTION What wallet and payment rail should early Vectory use? :wallet:payments:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =THESIS.md=
+:NEXT_ACTION: Decide how native wallet addresses, signed checkpoints, temporary balances, and future migration into the full chain fit together.
+:IMPACT: Keeps early =$VEC= rewards durable without pretending the full blockchain exists.
+:END:
+
+** OPEN_QUESTION How should Vectory be described publicly? :compliance:language:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =THESIS.md=; =vectory_semantic_options.md=
+:NEXT_ACTION: Create a language guide for contest/game/prediction/prize/scoring wording and avoid unnecessary market, investment, derivative, or settlement framing.
+:IMPACT: Reduces regulatory confusion while preserving the internal semantic-options design insight.
+:END:
+
+* Future Work
+** TODO Define public round state machine and domain events :architecture:round_engine:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =THESIS.md=
+:NEXT_ACTION: Document legal public-round states and typed domain events for announcement, prediction acceptance/rejection, target expiry, scoring, checkpointing, payout, close, and dispute.
+:IMPACT: Replaces ad hoc scripts and legacy commit/reveal phase assumptions with an auditable state machine.
+:END:
+
+** TODO Define worker interfaces and projection models :architecture:workers:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =THESIS.md=
+:NEXT_ACTION: Specify boundaries for round management, prediction collection, PoW verification, scoring, checkpointing, social announcements, and rebuildable projections.
+:IMPACT: Keeps the system modular, idempotent, and safe to replay after failures.
+:END:
+
+** TODO Define signed checkpoint MVP data types :vec:checkpoint:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =docs/vec_signed_checkpoint_mvp.md=
+:NEXT_ACTION: Define =PredictionRecord=, =PlayerScore=, =RoundManifestInput=, =CollectedRoundEvents=, =BalanceRecord=, and =VerificationBundle= before implementing checkpoint settlement.
+:IMPACT: These types carry the proof surface players need to verify accepted predictions and earned =$VEC=.
+:END:
+
+** TODO Define signed checkpoint operator functions :vec:checkpoint:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =docs/vec_signed_checkpoint_mvp.md=
+:NEXT_ACTION: Turn the draft =create_round_manifest=, =collect_round_events=, =score_round=, and =create_vec_checkpoint= signatures into implementable interfaces with canonical input/output payloads.
+:IMPACT: Prevents checkpoint code from accepting arbitrary rewards or incomplete evidence as operator input.
+:END:
+
+** TODO Implement semantic digest v0.1 scorer package :semantic_digest:scoring:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_deterministic.md=
+:NEXT_ACTION: Create the scorer package after canonical model, normalization, quantization, serialization, digest, artifact schema, and CLI boundaries are decided.
+:IMPACT: Moves semantic scoring from trusted internal computation toward reproducible public artifacts.
+:END:
+
+** TODO Create semantic mechanics experiment matrix :product:experiments:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_semantic_options.md=
+:NEXT_ACTION: Convert early commitment multiplier, rarity bonus, chaos bet, semantic buckets, and agent personas into hypotheses with cost, success metric, failure mode, data needs, and decision rule.
+:IMPACT: Keeps semantic-options mechanics testable instead of turning them into unbounded feature sprawl.
+:END:
+
+** TODO Create agent strategy prompt pack :agents:gameplay:
+:PROPERTIES:
+:OWNER: David
+:SOURCE: =vectory_semantic_options.md=
+:NEXT_ACTION: Draft player-agent prompts that optimize for winning, public engagement, persona, and use of public signals under the public prediction protocol.
+:IMPACT: Gives Vectory agents consistent strategic behavior without hiding product decisions in scattered prompt drafts.
+:END:
+
+* Recently Closed
+** DONE Centralize live question and task tracking :documentation:ops:
+:PROPERTIES:
+:OWNER: Codex
+:SOURCE: Subagent status-flow audit, 2026-05-13
+:NEXT_ACTION: Migrated live-looking question/task sections from design docs into this file and marked the source sections as historical context or durable guidance.
+:IMPACT: Keeps active open questions, todos, blockers, and status updates flowing through =PROJECT_STATUS.org= instead of scattered document sections.
+:END:
+
+** DONE Split README onboarding into manual and API posting paths :docs:onboarding:
+:PROPERTIES:
+:OWNER: Codex
+:SOURCE: User instruction, 2026-05-12
+:NEXT_ACTION: README now documents copy/paste prediction posting as the default path and API posting as optional.
+:IMPACT: New players no longer need Twitter API credentials to understand or try the public prediction flow.
+:END:
+
+** DONE Replace STATUS.md with PROJECT_STATUS.org :documentation:ops:
+:PROPERTIES:
+:OWNER: Codex
+:SOURCE: User instruction, 2026-05-12
+:NEXT_ACTION: Future agents should read and update =PROJECT_STATUS.org= instead of =STATUS.md=.
+:IMPACT: Live project state now uses explicit TODO/BLOCKED/OPEN_QUESTION entries.
+:END:
+
+** DONE Apply rustfmt formatting before protocol changes :formatting:
+:PROPERTIES:
+:OWNER: Codex
+:SOURCE: Commit =a667c3f=
+:NEXT_ACTION: Kept as a separate commit so protocol diffs are easier to review.
+:IMPACT: Prevents formatting noise from obscuring the public prediction MVP changes.
+:END:

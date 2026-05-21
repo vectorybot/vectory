@@ -7,8 +7,8 @@ use crate::config::PlayerConfig;
 
 /// Fetch recent tweets from the validator account and display round info.
 pub async fn check_rounds(config: &PlayerConfig) -> Result<()> {
-    let client = config.twitter_client();
-    let username = &config.game.validator_username;
+    let client = config.twitter_client()?;
+    let username = config.validator_username()?;
 
     println!("Checking @{} for active rounds...\n", username);
 
@@ -68,20 +68,12 @@ pub async fn check_rounds(config: &PlayerConfig) -> Result<()> {
 /// Fetch round results from Supabase (read-only, anon key).
 pub async fn check_results(config: &PlayerConfig, round_id: &str) -> Result<()> {
     let url = config
-        .game
-        .supabase_url
-        .clone()
-        .or_else(|| std::env::var("SUPABASE_URL").ok())
+        .supabase_url()
         .ok_or_else(|| eyre::eyre!("No supabase_url in config or SUPABASE_URL env var"))?;
 
-    let anon_key = config
-        .game
-        .supabase_anon_key
-        .clone()
-        .or_else(|| std::env::var("SUPABASE_ANON_KEY").ok())
-        .ok_or_else(|| {
-            eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var")
-        })?;
+    let anon_key = config.supabase_anon_key().ok_or_else(|| {
+        eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var")
+    })?;
 
     let client = reqwest::Client::new();
     let resp = client

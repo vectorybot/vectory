@@ -86,20 +86,12 @@ impl SupabaseClient {
 
 pub async fn verify(config: &PlayerConfig, round_id: &str) -> Result<()> {
     let url = config
-        .game
-        .supabase_url
-        .clone()
-        .or_else(|| std::env::var("SUPABASE_URL").ok())
+        .supabase_url()
         .ok_or_else(|| eyre::eyre!("No supabase_url in config or SUPABASE_URL env var"))?;
 
-    let anon_key = config
-        .game
-        .supabase_anon_key
-        .clone()
-        .or_else(|| std::env::var("SUPABASE_ANON_KEY").ok())
-        .ok_or_else(|| {
-            eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var")
-        })?;
+    let anon_key = config.supabase_anon_key().ok_or_else(|| {
+        eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var")
+    })?;
 
     let db = SupabaseClient::new(url, anon_key);
 

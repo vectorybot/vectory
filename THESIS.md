@@ -489,28 +489,11 @@ It is the internal machinery that makes the Twitter-native design operationally 
 
 ---
 
-# 16. Open questions
+# 16. Live open questions
 
-These items are still open and should not be silently assumed.
+Active product, technical, compliance, and implementation questions live in `PROJECT_STATUS.org`.
 
-## Product / mechanics
-- exact target format for each round
-- exact reveal window mechanics
-- exact payout structure and treasury flow
-- whether some milestones should always be mirrored publicly or only selected ones
-
-## Technical
-- exact event log technology
-- exact projection database design
-- exact ingestion mechanism for Twitter/X
-- exact retry semantics
-- exact wallet/payment rail
-- exact scoring model and infrastructure path
-- exact dispute-resolution workflow
-
-## Compliance / framing
-- how the system should be described publicly to avoid unnecessary regulatory confusion
-- what language should be used around contest, market, prediction, prize pool, and settlement
+This thesis should not be used as a live question register. It is durable architecture context for evaluating whether a proposed change still supports the Twitter-native public-play hypothesis.
 
 ---
 
@@ -536,57 +519,19 @@ and less like:
 
 ---
 
-# 18. Immediate implementation guidance
+# 18. Implementation guidance
 
-If starting fresh or resuming active implementation, the next useful steps are:
+Live implementation tasks live in `PROJECT_STATUS.org`.
 
-## Step 1: define the round state machine
-Document the legal states and transitions for a round.
+Durable guidance:
 
-Example states:
-- draft
-- announced
-- commitments_open
-- target_locked
-- reveals_open
-- scoring
-- payouts_pending
-- closed
-- disputed
-
-## Step 2: define normalized domain events
-Create a typed schema for the events listed earlier.
-
-## Step 3: define Twitter ingestion boundaries
-Specify:
-- how round threads are identified
-- how replies are fetched
-- how relevant tweets are parsed
-- how tweet metadata maps to domain entities
-
-## Step 4: define projection models
-At minimum:
-- rounds
-- commitments
-- reveals
-- scores
-- payouts
-- social posts
-
-## Step 5: define worker interfaces
-At minimum:
-- `RoundManager`
-- `CommitmentValidator`
-- `RevealVerifier`
-- `ScoringEngine`
-- `PayoutExecutor`
-- `SocialAnnouncer`
-
-## Step 6: abstract scoring model
-Do not bind the whole system directly to CLIP-era assumptions.
-
-## Step 7: keep Twitter-native gameplay intact
-When in doubt, preserve the public game loop.
+- define explicit public-round states and deterministic transitions
+- define normalized domain events before adding more workers
+- specify Twitter/X ingestion boundaries before accepting public predictions automatically
+- keep projection models rebuildable from public evidence and internal events
+- keep worker interfaces idempotent and easy to replay after failure
+- abstract scoring model details instead of binding the whole system to one embedding implementation
+- when in doubt, preserve the Twitter-native public game loop
 
 ---
 
@@ -595,7 +540,7 @@ When in doubt, preserve the public game loop.
 Before changing the architecture, ask:
 
 1. Does this preserve Twitter as the public venue of the game?
-2. Does this preserve public commitment and reveal as part of the ritual?
+2. Does this preserve public prediction/commitment as part of the ritual?
 3. Does this make settlement safer and more deterministic?
 4. Does this improve iteration speed rather than slow it down?
 5. Does this accidentally turn Vectory into a private backend product instead of a public social contest?

@@ -5,15 +5,21 @@ use serde::Deserialize;
 use std::path::PathBuf;
 use twitter_api::{TwitterClient, TwitterConfig};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[allow(dead_code)]
 pub struct PlayerConfig {
+    #[serde(default)]
     pub name: String,
+    #[serde(default)]
     pub handle: String,
-    pub twitter: TwitterCreds,
+    #[serde(default)]
+    pub twitter: Option<TwitterCreds>,
+    #[serde(default)]
     pub game: GameSettings,
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 pub struct TwitterCreds {
     pub api_key: String,
     pub api_secret: String,
@@ -23,9 +29,11 @@ pub struct TwitterCreds {
     pub twitterapi_dot_io_api_key: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct GameSettings {
+    #[serde(default)]
     pub validator_username: String,
+    #[serde(default)]
     pub base_wallet_address: String,
     #[serde(default)]
     pub supabase_url: Option<String>,
@@ -57,21 +65,68 @@ impl PlayerConfig {
             .wrap_err_with(|| format!("Failed to parse {}", config_path.display()))
     }
 
+    pub fn load_if_exists(name: &str) -> Result<Option<Self>> {
+        let dir = agent_dir(name);
+        let config_path = dir.join("config.yaml");
+        if !config_path.exists() {
+            return Ok(None);
+        }
+        Self::load(name).map(Some)
+    }
+
     /// Build a `TwitterClient` from config credentials.
-    pub fn twitter_client(&self) -> TwitterClient {
-        TwitterClient::new(TwitterConfig {
-            api_key: self.twitter.api_key.clone(),
-            api_secret: self.twitter.api_secret.clone(),
-            access_token: self.twitter.access_token.clone(),
-            access_token_secret: self.twitter.access_token_secret.clone(),
-        })
+    pub fn twitter_client(&self) -> Result<TwitterClient> {
+        let twitter = self.twitter.as_ref().ok_or_else(|| {
+            eyre::eyre!(
+                "Twitter credentials missing. Add a twitter block to config.yaml to post through the API, or run without --post and paste manually."
+            )
+        })?;
+        Ok(TwitterClient::new(TwitterConfig {
+            api_key: twitter.api_key.clone(),
+            api_secret: twitter.api_secret.clone(),
+            access_token: twitter.access_token.clone(),
+            access_token_secret: twitter.access_token_secret.clone(),
+        }))
+    }
+
+    pub fn supabase_url(&self) -> Option<String> {
+        self.game
+            .supabase_url
+            .clone()
+            .or_else(|| std::env::var("SUPABASE_URL").ok())
+    }
+
+    pub fn supabase_anon_key(&self) -> Option<String> {
+        self.game
+            .supabase_anon_key
+            .clone()
+            .or_else(|| std::env::var("SUPABASE_ANON_KEY").ok())
+    }
+
+    pub fn validator_username(&self) -> Result<&str> {
+        if self.game.validator_username.is_empty() {
+            return Err(eyre::eyre!(
+                "validator_username missing in config.yaml; required for rounds"
+            ));
+        }
+        Ok(&self.game.validator_username)
+    }
+
+    pub fn base_wallet_address(&self) -> Result<&str> {
+        if self.game.base_wallet_address.is_empty() {
+            return Err(eyre::eyre!(
+                "base_wallet_address missing in config.yaml; required for legacy commit"
+            ));
+        }
+        Ok(&self.game.base_wallet_address)
     }
 
     /// Resolve twitterapi.io key from config first, then environment.
+    #[allow(dead_code)]
     pub fn twitterapi_io_api_key(&self) -> Result<String> {
         self.twitter
-            .twitterapi_dot_io_api_key
-            .clone()
+            .as_ref()
+            .and_then(|twitter| twitter.twitterapi_dot_io_api_key.clone())
             .or_else(|| std::env::var("TWITTERAPI_DOT_IO_API_KEY").ok())
             .ok_or_else(|| {
                 eyre::eyre!(
@@ -117,4 +172,34 @@ fn expand_env_vars(input: &str) -> String {
     }
 
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_manual_config_without_twitter_credentials() {
+        let raw = r#"
+game:
+  supabase_url: "https://example.supabase.co"
+  supabase_anon_key: "anon"
+"#;
+
+        let config: PlayerConfig = serde_yaml::from_str(raw).unwrap();
+
+        assert!(config.twitter.is_none());
+        assert_eq!(
+            config.supabase_url().unwrap(),
+            "https://example.supabase.co"
+        );
+        assert_eq!(config.supabase_anon_key().unwrap(), "anon");
+    }
+
+    #[test]
+    fn twitter_client_errors_without_twitter_credentials() {
+        let config: PlayerConfig = serde_yaml::from_str("game: {}\n").unwrap();
+
+        assert!(config.twitter_client().is_err());
+    }
 }

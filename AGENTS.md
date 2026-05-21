@@ -1,24 +1,24 @@
 # Repository Guidelines
 
 ## System Status
-- **Read `STATUS.md` first** — it tracks what the system can and cannot do.
-- Update `STATUS.md` whenever capabilities change (new tools, features, integrations, or known gaps).
-- Keep `AGENTS.md` lean. Live system state belongs in `STATUS.md`, not here.
+- **Read `PROJECT_STATUS.org` first** — it tracks what the system can and cannot do.
+- Update `PROJECT_STATUS.org` whenever capabilities change (new tools, features, integrations, or known gaps).
+- Keep `AGENTS.md` lean. Live system state belongs in `PROJECT_STATUS.org`, not here.
 
 ## Task Workflow
-1. Start every task by reading `STATUS.md`, then checking `git status --short` and `git log --oneline -5`.
+1. Start every task by reading `PROJECT_STATUS.org`, then checking `git status --short` and `git log --oneline -5`.
 2. Route yourself to the right supporting docs before editing:
    - `THESIS.md` for the central product thesis and architecture guardrails; use it when evaluating directional changes so implementation stays focused on testing the Twitter-native public-play hypothesis
    - `README.md` for player-facing workflow and onboarding documentation
 3. Borrow reusable workflow patterns from other projects, but do **not** copy their project-specific status, stakeholders, or dated context into this repo.
-4. End each task by running the narrowest meaningful verification, updating the docs touched by the change, and explicitly noting any remaining risk or unverified path.
+4. End each task by running the narrowest meaningful verification, updating the docs touched by the change, and explicitly noting any remaining risk or unverified path. If that risk or gap remains active, add or update a `PROJECT_STATUS.org` item.
 
 ## Project Structure & Module Organization
 - `bin/vectory/` is the player CLI binary crate; entry point is `bin/vectory/src/main.rs`.
 - `crates/types/` defines shared types used across crates (round types, commitment hashing, scoring math).
 - `crates/twitter-api/` is the OAuth 1.0a Twitter client.
 - `crates/player/` contains the player binary and agent logic.
-- `README.md` and `STATUS.md` are the primary documentation set.
+- `README.md` and `PROJECT_STATUS.org` are the primary documentation set.
 - `target/` is Cargo build output; do not edit or commit.
 
 ## Build, Test, and Development Commands
@@ -39,7 +39,7 @@
 - `cargo test` should stay green before pushing changes.
 - Prefer the smallest check that proves the change: `cargo test`, `cargo check -p <crate>`, or `cargo run --example <name>`.
 - Keep examples runnable with `cargo run --example <name>`.
-- If behavior changes without automated coverage, document the gap and why.
+- If behavior changes without automated coverage, document the gap and why. If the gap remains active, track it in `PROJECT_STATUS.org`.
 
 ## Commit & Pull Request Guidelines
 - Follow conventional-style commit messages: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
@@ -51,6 +51,7 @@
 - The `twitter-api` crate handles OAuth 1.0a signing via `TwitterClient::from_env()`.
 - Required env vars: `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_TOKEN_SECRET`.
 - Do NOT use `TWITTER_BEARER_TOKEN` for any write operations — it will return 403 Forbidden.
+- Twitter API credentials are optional for players using the manual copy/paste prediction path. Only require them for `--post` or direct Twitter utility commands.
 
 ## Browser Posting (Camoufox)
 - X blocks API replies unless the replying account is followed/mentioned by the tweet author. Use camoufox-cli for browser-based replies when the API returns 403 on replies.
@@ -79,42 +80,55 @@
 
 ### Before Your First Round
 1. Build the player CLI: `cargo build -p vectory`
-2. Set env vars: `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_TOKEN_SECRET`
-3. Set your agent: `export VECTORY_AGENT=your_handle`
-4. Verify config isolation: `ls ~/.vectory/agents/` should show ONLY your handle
-5. If configs for other accounts exist, delete them
+2. Set public Supabase config through `SUPABASE_URL`/`SUPABASE_ANON_KEY` or `~/.vectory/agents/<handle>/config.yaml`
+3. Create a native wallet: `cargo run -p vectory -- --agent <handle> wallet create`
+4. Use `predict` without `--post` for manual copy/paste posting, or configure OAuth 1.0a credentials only if the CLI should post for the player
+5. For API posting, verify config isolation: `ls ~/.vectory/agents/` should show ONLY your handle
 
 ### Canonical Formats (Non-Negotiable)
-The validator collector only parses these exact formats. Do not freestyle.
+Vectory tooling should only accept these exact formats. Do not freestyle.
 
-Commitment:
+Public prediction:
+```
+r:<round_id>
+t:<target_account_id>
+p:<prediction text>
+w:<vec1-wallet-address>
+m:<scoring_model_id>
+n:<pow_nonce>
+s:<signature>
+```
+
+Legacy commitment:
 ```
 hash:<64-hex>
 address:<0x-address>
 ```
 
-Reveal:
+Legacy reveal:
 ```
 r:<prediction text>
 s:<salt>
 ```
 
-Any other format (emoji labels, `Hash:`, `Prediction:`, `Salt:`, etc.) will not be collected.
+Any other format (emoji labels, `Round:`, `Prediction:`, `Hash:`, `Salt:`, etc.) will not be collected.
 
 ### Common Failure Modes (from rounds 44-46)
 1. **Wrong binary**: Using any binary other than the player CLI in this repo can cause tweets to post from the wrong account. Always use the player CLI with `--agent your_handle`.
-2. **Format drift**: Using `Prediction:`/`Salt:` or `Hash:` instead of `r:`/`s:` or `hash:`. The CLI auto-formats correctly — do not compose tweet text manually.
-3. **Config contamination**: Having multiple agent configs in `~/.vectory/agents/` can cause the CLI to pick the wrong account. Keep only your own.
-4. **API reply 403**: Twitter blocks replies to accounts that haven't mentioned you. Quote-tweet the announcement or post a standalone mention instead.
+2. **Format drift**: Adding labels, emojis, hashtags inside the canonical prediction body, or hand-editing field names. The CLI auto-formats correctly — paste its output exactly.
+3. **Missing Supabase config**: `predict` cannot derive the active round without the public Supabase URL and anon key.
+4. **Config contamination**: Having multiple agent configs in `~/.vectory/agents/` can cause the CLI to pick the wrong account when using `--post`. Keep only your own for API posting.
+5. **API reply 403**: Twitter blocks some API replies. Run without `--post` and paste manually, or quote-tweet the announcement instead.
 
 ### Preflight Checklist (Every Round)
-- [ ] `echo $VECTORY_AGENT` shows your handle
-- [ ] `ls ~/.vectory/agents/` shows only your handle's directory
+- [ ] The command uses `--agent your_handle`
+- [ ] `wallet address` shows the native `vec1...` wallet where the player expects to be paid
+- [ ] `predict` is using the intended target account for this specific prediction
 - [ ] Using the player CLI binary (from `vectory/`), not the validator binary
-- [ ] After posting, fetch the tweet back and verify the author matches your handle
+- [ ] If using `--post`, fetch the tweet back and verify the author matches your handle
 
 ### Posting Strategies
-The validator collector searches multiple Twitter sources:
+The validator collection strategy is to search multiple Twitter sources:
 - Direct replies to the announcement tweet
 - Quote tweets of the announcement
 - Mentions of `@vectorybot` with `#vectory #round<N>`

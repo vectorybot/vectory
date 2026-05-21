@@ -64,10 +64,10 @@ pub async fn commit(
     println!("Prediction saved to {}", path.display());
 
     // Build commitment tweet text
-    let text = format!("hash:{}\naddress:{}", hash, config.game.base_wallet_address);
+    let text = format!("hash:{}\naddress:{}", hash, config.base_wallet_address()?);
 
     println!("Posting commitment for round {}...", round_id);
-    let client = config.twitter_client();
+    let client = config.twitter_client()?;
     // Try quote tweet first, fall back to reply if quote is blocked
     let result = match client.quote_tweet(&text, tweet_id).await {
         Ok(r) => r,

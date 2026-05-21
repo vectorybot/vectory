@@ -1,9 +1,12 @@
 mod commit;
 mod config;
+mod predict;
+mod prediction_commitment;
 mod predictions;
 mod reveal;
 mod rounds;
 mod verify;
+mod wallet;
 
 use clap::{Parser, Subcommand};
 use eyre::Result;
@@ -24,6 +27,40 @@ struct Cli {
 enum Command {
     /// Check for active rounds from the validator
     Rounds,
+
+    /// Manage native Vectory wallet
+    Wallet {
+        #[command(subcommand)]
+        command: WalletCommand,
+    },
+
+    /// Make a public prediction commitment with proof-of-work
+    Predict {
+        /// Target Twitter account id or handle
+        #[arg(long)]
+        target_account_id: String,
+        /// Public prediction text
+        #[arg(long)]
+        prediction: String,
+        /// Scoring model id
+        #[arg(long, default_value = "bge-m3")]
+        scoring_model_id: String,
+        /// PoW leading zero bits
+        #[arg(long, default_value_t = 16)]
+        difficulty_bits: u32,
+        /// Vectory chain id
+        #[arg(long, default_value = "vectory-local")]
+        chain_id: String,
+        /// Prediction protocol version
+        #[arg(long, default_value = "vectory-v1")]
+        protocol_version: String,
+        /// Post through Twitter API credentials instead of printing tweet text
+        #[arg(long)]
+        post: bool,
+        /// Tweet ID to quote when posting
+        #[arg(long)]
+        tweet_id: Option<String>,
+    },
 
     /// Commit a prediction to a round
     Commit {
@@ -101,14 +138,62 @@ enum Command {
     },
 }
 
+#[derive(Subcommand)]
+enum WalletCommand {
+    /// Create a native Vectory wallet for this agent
+    Create,
+    /// Show this agent's native Vectory wallet address
+    Address,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let config = config::PlayerConfig::load(&cli.agent)?;
 
     match cli.command {
         Command::Rounds => {
+            let config = config::PlayerConfig::load(&cli.agent)?;
             rounds::check_rounds(&config).await?;
+        }
+
+        Command::Wallet { command } => match command {
+            WalletCommand::Create => {
+                let wallet = wallet::create_wallet(&cli.agent)?;
+                println!("Created native Vectory wallet");
+                println!("Address: {}", wallet.address);
+            }
+            WalletCommand::Address => {
+                let wallet = wallet::load_wallet(&cli.agent)?;
+                println!("{}", wallet.address);
+            }
+        },
+
+        Command::Predict {
+            target_account_id,
+            prediction,
+            scoring_model_id,
+            difficulty_bits,
+            chain_id,
+            protocol_version,
+            post,
+            tweet_id,
+        } => {
+            let config = config::PlayerConfig::load_if_exists(&cli.agent)?;
+            predict::predict(
+                config.as_ref(),
+                &cli.agent,
+                predict::PredictOptions {
+                    target_account_id,
+                    prediction,
+                    scoring_model_id,
+                    difficulty_bits,
+                    chain_id,
+                    protocol_version,
+                    post,
+                    tweet_id,
+                },
+            )
+            .await?;
         }
 
         Command::Commit {
@@ -117,32 +202,39 @@ async fn main() -> Result<()> {
             salt,
             tweet_id,
         } => {
-            commit::commit(&config, &cli.agent, &round_id, &prediction, salt.as_deref(), &tweet_id).await?;
+            let config = config::PlayerConfig::load(&cli.agent)?;
+            commit::commit(
+                &config,
+                &cli.agent,
+                &round_id,
+                &prediction,
+                salt.as_deref(),
+                &tweet_id,
+            )
+            .await?;
         }
 
-        Command::Reveal {
-            round_id,
-            tweet_id,
-        } => {
+        Command::Reveal { round_id, tweet_id } => {
+            let config = config::PlayerConfig::load(&cli.agent)?;
             reveal::reveal(&config, &cli.agent, &round_id, &tweet_id).await?;
         }
 
         Command::Results { round_id } => {
+            let config = config::PlayerConfig::load(&cli.agent)?;
             rounds::check_results(&config, &round_id).await?;
         }
 
-        Command::Show { round_id } => {
-            match predictions::load(&cli.agent, &round_id)? {
-                Some(record) => {
-                    println!("{}", serde_json::to_string_pretty(&record)?);
-                }
-                None => {
-                    println!("No saved prediction for round {}", round_id);
-                }
+        Command::Show { round_id } => match predictions::load(&cli.agent, &round_id)? {
+            Some(record) => {
+                println!("{}", serde_json::to_string_pretty(&record)?);
             }
-        }
+            None => {
+                println!("No saved prediction for round {}", round_id);
+            }
+        },
 
         Command::Verify { round_id } => {
+            let config = config::PlayerConfig::load(&cli.agent)?;
             verify::verify(&config, &round_id).await?;
         }
 
@@ -155,19 +247,22 @@ async fn main() -> Result<()> {
         }
 
         Command::Tweet { text } => {
-            let client = config.twitter_client();
+            let config = config::PlayerConfig::load(&cli.agent)?;
+            let client = config.twitter_client()?;
             let result = client.post_tweet(&text).await?;
             println!("Posted: {}", result.tweet.url);
         }
 
         Command::Quote { tweet_id, text } => {
-            let client = config.twitter_client();
+            let config = config::PlayerConfig::load(&cli.agent)?;
+            let client = config.twitter_client()?;
             let result = client.quote_tweet(&text, &tweet_id).await?;
             println!("Posted: {}", result.tweet.url);
         }
 
         Command::Reply { tweet_id, text } => {
-            let client = config.twitter_client();
+            let config = config::PlayerConfig::load(&cli.agent)?;
+            let client = config.twitter_client()?;
             let result = client.reply_to_tweet(&text, &tweet_id).await?;
             println!("Posted: {}", result.tweet.url);
         }

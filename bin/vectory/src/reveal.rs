@@ -35,7 +35,7 @@ pub async fn reveal(
     let text = format!("{}\nsalt:{}", record.prediction, record.salt);
 
     println!("Posting reveal for round {}...", round_id);
-    let client = config.twitter_client();
+    let client = config.twitter_client()?;
     // Try quote tweet first, fall back to reply if quote is blocked
     let result = match client.quote_tweet(&text, tweet_id).await {
         Ok(r) => r,
