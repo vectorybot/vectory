@@ -16,6 +16,14 @@ pub struct PlayerConfig {
     pub twitter: Option<TwitterCreds>,
     #[serde(default)]
     pub game: GameSettings,
+    /// Optional override for the local $VEC ledger HTTP URL.
+    /// Defaults to `http://127.0.0.1:3000` when unset.
+    #[serde(default)]
+    pub ledger_url: Option<String>,
+    /// Trusted validator ed25519 public key, base64 STANDARD-encoded (32 bytes).
+    /// Populated by `vectory --agent <name> validator-info`.
+    #[serde(default)]
+    pub validator_pubkey: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -119,6 +127,64 @@ impl PlayerConfig {
             ));
         }
         Ok(&self.game.base_wallet_address)
+    }
+
+    /// Resolve the ledger base URL, falling back to the local default when unset.
+    pub fn ledger_url_or_default(&self) -> String {
+        self.ledger_url
+            .clone()
+            .unwrap_or_else(|| "http://127.0.0.1:3000".to_string())
+    }
+
+    /// Persist `validator_pubkey` into the on-disk config.yaml, preserving every
+    /// other field. We round-trip through `serde_yaml::Value` so unknown / future
+    /// keys aren't dropped (the strongly-typed `PlayerConfig` would discard
+    /// anything it doesn't know about).
+    pub fn set_validator_pubkey_in_file(name: &str, pubkey_b64_std: &str) -> Result<()> {
+        let dir = agent_dir(name);
+        std::fs::create_dir_all(&dir)
+            .wrap_err_with(|| format!("Failed to create {}", dir.display()))?;
+        let config_path = dir.join("config.yaml");
+
+        // It's fine for config.yaml not to exist yet — a brand-new agent who
+        // only has a wallet still wants to be able to fetch the validator
+        // pubkey. Create with an empty mapping in that case.
+        let raw = match std::fs::read_to_string(&config_path) {
+            Ok(s) => s,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
+            Err(e) => {
+                return Err(eyre::eyre!(
+                    "Failed to read {}: {}",
+                    config_path.display(),
+                    e
+                ));
+            }
+        };
+
+        let mut doc: serde_yaml::Value = if raw.trim().is_empty() {
+            serde_yaml::Value::Mapping(serde_yaml::Mapping::new())
+        } else {
+            serde_yaml::from_str(&raw)
+                .wrap_err_with(|| format!("Failed to parse {}", config_path.display()))?
+        };
+
+        let mapping = doc.as_mapping_mut().ok_or_else(|| {
+            eyre::eyre!(
+                "Expected {} to be a YAML mapping at the top level",
+                config_path.display()
+            )
+        })?;
+
+        mapping.insert(
+            serde_yaml::Value::String("validator_pubkey".to_string()),
+            serde_yaml::Value::String(pubkey_b64_std.to_string()),
+        );
+
+        let serialized = serde_yaml::to_string(&doc)
+            .wrap_err("Failed to serialize updated config.yaml")?;
+        std::fs::write(&config_path, serialized)
+            .wrap_err_with(|| format!("Failed to write {}", config_path.display()))?;
+        Ok(())
     }
 
     /// Resolve twitterapi.io key from config first, then environment.

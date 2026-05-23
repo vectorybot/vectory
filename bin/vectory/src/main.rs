@@ -1,3 +1,4 @@
+mod balance;
 mod commit;
 mod config;
 mod predict;
@@ -5,11 +6,14 @@ mod prediction_commitment;
 mod predictions;
 mod reveal;
 mod rounds;
+mod validator_info;
 mod verify;
+mod verify_receipt;
 mod wallet;
 
 use clap::{Parser, Subcommand};
 use eyre::Result;
+use std::path::PathBuf;
 use twitter_api::TwitterApi;
 
 #[derive(Parser)]
@@ -136,6 +140,19 @@ enum Command {
         /// Reply text
         text: String,
     },
+
+    /// Show this agent's $VEC balance from the local ledger
+    Balance,
+
+    /// Verify a signed $VEC ledger receipt against the trusted validator pubkey
+    VerifyReceipt {
+        /// Path to the JSON receipt (signed transaction file)
+        #[arg(long)]
+        tx_file: PathBuf,
+    },
+
+    /// Fetch and save the validator's public key from the local ledger
+    ValidatorInfo,
 }
 
 #[derive(Subcommand)]
@@ -265,6 +282,24 @@ async fn main() -> Result<()> {
             let client = config.twitter_client()?;
             let result = client.reply_to_tweet(&text, &tweet_id).await?;
             println!("Posted: {}", result.tweet.url);
+        }
+
+        Command::Balance => {
+            let config = config::PlayerConfig::load_if_exists(&cli.agent)?
+                .unwrap_or_default();
+            balance::check_balance(&config, &cli.agent).await?;
+        }
+
+        Command::VerifyReceipt { tx_file } => {
+            let config = config::PlayerConfig::load_if_exists(&cli.agent)?
+                .unwrap_or_default();
+            verify_receipt::verify_receipt(&config, &cli.agent, &tx_file)?;
+        }
+
+        Command::ValidatorInfo => {
+            let config = config::PlayerConfig::load_if_exists(&cli.agent)?
+                .unwrap_or_default();
+            validator_info::fetch_validator_info(&config, &cli.agent).await?;
         }
     }
 
