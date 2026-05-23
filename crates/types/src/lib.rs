@@ -95,7 +95,10 @@ pub struct CapturedTweet {
 pub struct Commitment {
     pub player: String,
     pub hash: String,
-    /// USDC payout address on Base
+    /// Payout wallet address. Legacy rounds: 0x... (USDC on Base, no longer
+    /// active). New rounds carry the wallet inside the prediction payload
+    /// (`w:vec1...`); this field is kept for backward compatibility with
+    /// historical commitments and may be `None` for new entries.
     pub address: Option<String>,
     /// Tweet ID of commitment reply
     pub tweet_id: String,
