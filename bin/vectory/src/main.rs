@@ -141,10 +141,10 @@ enum Command {
         text: String,
     },
 
-    /// Show this agent's $VEC balance from the local ledger
+    /// Show this agent's $VCTY balance from the local ledger
     Balance,
 
-    /// Verify a signed $VEC ledger receipt against the trusted validator pubkey
+    /// Verify a signed $VCTY ledger receipt against the trusted validator pubkey
     VerifyReceipt {
         /// Path to the JSON receipt (signed transaction file)
         #[arg(long)]

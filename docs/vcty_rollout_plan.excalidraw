@@ -29,13 +29,13 @@
       "updated": 1,
       "link": null,
       "locked": false,
-      "text": "$VEC rollout: pay players now, preserve migration path to decentralization",
+      "text": "$VCTY rollout: pay players now, preserve migration path to decentralization",
       "fontSize": 28,
       "fontFamily": 1,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "$VEC rollout: pay players now, preserve migration path to decentralization",
+      "originalText": "$VCTY rollout: pay players now, preserve migration path to decentralization",
       "lineHeight": 1.25
     },
     {
@@ -64,13 +64,13 @@
       "updated": 1,
       "link": null,
       "locked": false,
-      "text": "Live cohort: you + human player + agents. Twitter remains public gameplay; signed ledger records early $VEC.",
+      "text": "Live cohort: you + human player + agents. Twitter remains public gameplay; signed ledger records early $VCTY.",
       "fontSize": 16,
       "fontFamily": 1,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Live cohort: you + human player + agents. Twitter remains public gameplay; signed ledger records early $VEC.",
+      "originalText": "Live cohort: you + human player + agents. Twitter remains public gameplay; signed ledger records early $VCTY.",
       "lineHeight": 1.25
     },
     {
@@ -498,13 +498,13 @@
       "updated": 1,
       "link": null,
       "locked": false,
-      "text": "Signed $VEC ledger\nappend-only events\nhash chain + signature",
+      "text": "Signed $VCTY ledger\nappend-only events\nhash chain + signature",
       "fontSize": 16,
       "fontFamily": 1,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "Signed $VEC ledger\nappend-only events\nhash chain + signature",
+      "originalText": "Signed $VCTY ledger\nappend-only events\nhash chain + signature",
       "lineHeight": 1.25
     },
     {
@@ -808,13 +808,13 @@
       "updated": 1,
       "link": null,
       "locked": false,
-      "text": "Genesis import\nsigned balances\nbecome on-chain $VEC",
+      "text": "Genesis import\nsigned balances\nbecome on-chain $VCTY",
       "fontSize": 15,
       "fontFamily": 1,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "Genesis import\nsigned balances\nbecome on-chain $VEC",
+      "originalText": "Genesis import\nsigned balances\nbecome on-chain $VCTY",
       "lineHeight": 1.25
     },
     {

@@ -1,8 +1,8 @@
-# $VEC Signed Checkpoint MVP
+# $VCTY Signed Checkpoint MVP
 
 ## Purpose
 
-This document captures the bare minimum technical design for paying a real human Vectory player in `$VEC` before the decentralized chain exists.
+This document captures the bare minimum technical design for paying a real human Vectory player in `$VCTY` before the decentralized chain exists.
 
 This stage does **not** create real blockchain blocks. The primitive is a signed checkpoint:
 
@@ -10,11 +10,11 @@ This stage does **not** create real blockchain blocks. The primitive is a signed
 Twitter round
 -> public predictions with proof-of-work
 -> scoring artifact
--> signed $VEC ledger checkpoint
+-> signed $VCTY ledger checkpoint
 -> future genesis import / migration set
 ```
 
-The goal is to make early `$VEC` rewards durable enough that players do not lose them as Vectory moves toward decentralization.
+The goal is to make early `$VCTY` rewards durable enough that players do not lose them as Vectory moves toward decentralization.
 
 ## Current Design Change
 
@@ -27,7 +27,7 @@ announce round
 -> player posts public prediction with valid proof-of-work
 -> target tweet/event occurs
 -> predictions are scored
--> $VEC rewards are minted into a signed internal checkpoint
+-> $VCTY rewards are minted into a signed internal checkpoint
 ```
 
 In this model:
@@ -57,7 +57,7 @@ public Twitter gameplay
 + public plaintext predictions
 + prediction proof-of-work
 + auditable round artifact
-+ append-only signed $VEC ledger
++ append-only signed $VCTY ledger
 + player verification command
 ```
 
@@ -81,7 +81,7 @@ If any of these are missing, the system is not useful for a real player because 
    Defines the rules before play starts, including the prediction deadline, scoring model, PoW difficulty, reward formula, and ledger key.
 
 2. **Player identity binding**
-   Maps each Twitter handle to a stable player id and wallet/address for future `$VEC` migration.
+   Maps each Twitter handle to a stable player id and wallet/address for future `$VCTY` migration.
    Wallets are cheap to create, so wallet-only identity is not enough for admission, spam control, or rewards. The MVP must bind accepted predictions to a registered Twitter identity and the wallet that identity is allowed to use.
 
 3. **Public prediction flow**
@@ -93,7 +93,7 @@ If any of these are missing, the system is not useful for a real player because 
 5. **Scoring artifact**
    Stores all inputs and outputs needed to audit the round, including accepted and rejected prediction records.
 
-6. **Signed `$VEC` checkpoint**
+6. **Signed `$VCTY` checkpoint**
    Records mint/reward ledger events, links to the previous checkpoint hash, and is signed by the temporary Vectory ledger key.
 
 7. **Player verification**
@@ -104,7 +104,7 @@ If any of these are missing, the system is not useful for a real player because 
 
 ## Can Wait
 
-These are important, but not required for the first useful `$VEC` checkpoint:
+These are important, but not required for the first useful `$VCTY` checkpoint:
 
 - Standalone chain
 - PoS validators
@@ -122,7 +122,7 @@ Prediction proof-of-work **cannot wait** because it replaces hidden commitments 
 
 ## Trust Model
 
-In this MVP, `$VEC` is Vectory-attested, not trustless.
+In this MVP, `$VCTY` is Vectory-attested, not trustless.
 
 Players can verify:
 
@@ -247,7 +247,7 @@ Review notes:
 | `scorer_version` | Binds the round to a scoring implementation. | Yes | Too weak as a free string long-term; pair with scorer config/hash. |
 | `scoring_model_id` | Binds the player payload and scoring artifact to the same model. | Yes | Example: `BAAI/bge-m3:<revision>`. |
 | `payout_formula` | Makes rewards predictable before play starts. | Yes | Should be a canonical formula id/config, not prose. |
-| `fixed_reward_pool_base_units` | States how much `$VEC` is minted for the round. | Yes | Use integer base units, not floats. |
+| `fixed_reward_pool_base_units` | States how much `$VCTY` is minted for the round. | Yes | Use integer base units, not floats. |
 | `pow_algorithm` | Defines how prediction PoW is verified. | Yes | MVP recommendation: `sha256-leading-zero-bits`. |
 | `pow_difficulty_bits` | Sets the spam cost for accepted predictions. | Yes | Keep low enough for real players to submit from normal hardware. |
 | `ledger_public_key` | Lets players verify signed checkpoints later. | Yes | Add key id, algorithm, and validity window when implemented. |
@@ -270,7 +270,7 @@ Review notes:
 | `player_id` | Stable internal id used across artifacts and ledger events. | Yes | Should be deterministic or signed so it cannot silently change. |
 | `twitter_handle` | Human-readable public identity. | Yes | Handles can change; add Twitter user id as soon as practical. |
 | `twitter_user_id` | More durable Twitter identity than handle. | Recommended | Optional only if current API path cannot fetch it quickly. |
-| `wallet_address` | Destination identity for `$VEC` migration. | Yes | Normalize/checksum and bind to chain/network id. |
+| `wallet_address` | Destination identity for `$VCTY` migration. | Yes | Normalize/checksum and bind to chain/network id. |
 | `binding_hash` | Commits to the identity binding. | Yes, derived | Hash is integrity, not authority; add Vectory signature and ideally wallet ownership proof. |
 
 Identity rule:
@@ -350,7 +350,7 @@ Review notes:
 | `scorer_metadata_hash` | Commits to model/tokenizer/runtime/config metadata. | Yes | This is critical while scorer is Vectory-attested. |
 | `predictions` | Public prediction records used for eligibility and scoring. | Yes | Must include accepted and rejected records for auditability. |
 | `scores` | Player scores and rankings. | Yes | Include similarity, rank, payout inputs, and enough evidence to audit reward. |
-| `reward_pool_base_units` | Total `$VEC` minted for this round. | Yes | Must match manifest unless a cancellation/override rule exists. |
+| `reward_pool_base_units` | Total `$VCTY` minted for this round. | Yes | Must match manifest unless a cancellation/override rule exists. |
 | `payout_formula` | Documents reward calculation actually used. | Maybe duplicated | Since manifest should be authoritative, prefer formula id/config in manifest and include only computed payout evidence here. |
 | `artifact_hash` | Compact commitment to all round evidence. | Yes, derived | Must define canonical serialization and exclude itself from hash payload. |
 
@@ -363,7 +363,7 @@ struct PlayerScore {
     time_multiplier: String,
     payout_weight: String,
     rank: u32,
-    amount_vec_base_units: String,
+    amount_vcty_base_units: String,
 }
 ```
 
@@ -378,7 +378,7 @@ Review notes:
 | `time_multiplier` | Optional early-conviction factor. | Maybe | Include if the payout formula uses timing. Otherwise set to `1`. |
 | `payout_weight` | Weight used to divide the reward pool. | Yes | Derived from score formula. |
 | `rank` | Human-readable ranking. | Yes | Not sufficient for payout by itself. |
-| `amount_vec_base_units` | `$VEC` credited by this score. | Yes | Use integer base units. |
+| `amount_vcty_base_units` | `$VCTY` credited by this score. | Yes | Use integer base units. |
 
 ```rust
 struct VecLedgerEvent {
@@ -387,7 +387,7 @@ struct VecLedgerEvent {
     event_type: String, // "reward_minted"
     to_player_id: String,
     to_wallet_address: String,
-    amount_vec_base_units: String,
+    amount_vcty_base_units: String,
     reason: String,
     round_artifact_hash: String,
     prediction_id: Option<String>,
@@ -405,7 +405,7 @@ Review notes:
 | `event_type` | Distinguishes reward mint from future event types. | Yes | Should become an enum, not free string. |
 | `to_player_id` | Links reward to the player binding. | Yes | Include `binding_hash` later so wallet changes are auditable. |
 | `to_wallet_address` | States migration destination for the reward. | Yes | Must match current valid binding or record an explicit exception. |
-| `amount_vec_base_units` | Amount of `$VEC` credited. | Yes | Integer base units avoid float ambiguity. |
+| `amount_vcty_base_units` | Amount of `$VCTY` credited. | Yes | Integer base units avoid float ambiguity. |
 | `reason` | Human-readable explanation for the credit. | Useful | Prefer `RewardReason` enum/code in canonical event; keep prose outside the event hash. |
 | `round_artifact_hash` | Binds event to scoring evidence. | Yes if events are portable | Redundant inside one-round checkpoints; critical if reward events are later exported independently. |
 | `prediction_id` | Links reward to the exact public prediction. | Recommended | Useful for player verification and future audit UI. |
@@ -416,7 +416,7 @@ Review notes:
 struct BalanceRecord {
     player_id: String,
     wallet_address: String,
-    amount_vec_base_units: String,
+    amount_vcty_base_units: String,
     checkpoint_id: String,
     checkpoint_hash: String,
 }
@@ -447,7 +447,7 @@ Review notes:
 | `round_id` | Links one checkpoint to one round. | Yes for MVP | Future checkpoints may cover multiple rounds. |
 | `previous_checkpoint_hash` | Creates append-only checkpoint chain. | Yes | Only `None` for the first checkpoint. |
 | `round_artifact_hash` | Binds checkpoint to scored round evidence. | Yes | Must equal artifact hash. |
-| `ledger_events` | The actual mint/reward events being signed. | Yes | These are the early `$VEC` source of truth. |
+| `ledger_events` | The actual mint/reward events being signed. | Yes | These are the early `$VCTY` source of truth. |
 | `resulting_balances` | Commits to post-checkpoint balances. | Yes for MVP | Easier for a human player to inspect than a Merkle root. |
 | `signer_key_id` | Identifies the temporary ledger key. | Yes | Verification should trust a keyring, not only the key embedded in checkpoint. |
 | `signer_public_key` | Public key material for verification. | Maybe | Keep for portability, but verify against trusted manifest/keyring. |
@@ -585,7 +585,7 @@ Return notes:
 | `prediction_timestamp_valid` | Confirms prediction was posted before deadline. | Yes | Should expose deadline and tweet timestamp. |
 | `proof_of_work_valid` | Confirms digest satisfies manifest difficulty. | Yes | Should expose digest and difficulty. |
 | `score_included` | Confirms player was scored. | Yes | Should expose score/rank, not just boolean. |
-| `reward_included` | Confirms `$VEC` event exists. | Yes | Should expose event id/hash and amount. |
+| `reward_included` | Confirms `$VCTY` event exists. | Yes | Should expose event id/hash and amount. |
 | `checkpoint_signature_valid` | Confirms checkpoint was signed by Vectory ledger key. | Yes | Requires trusted public key/keyring input. |
 | `checkpoint_hash_chain_valid` | Confirms append-only history. | Yes if checkpoint chain is supplied | Cannot be proven from a single checkpoint alone. |
 | `vec_balance_base_units` | Shows resulting player balance. | Yes | Use typed base units. |
@@ -664,7 +664,7 @@ Return notes:
 | --- | --- | --- | --- |
 | `RoundArtifact` | Canonical evidence bundle for results. | Yes | Should include scorer metadata and artifact hash. |
 
-### Create `$VEC` Checkpoint
+### Create `$VCTY` Checkpoint
 
 ```rust
 fn create_vec_checkpoint(
@@ -743,7 +743,7 @@ signed checkpoints
 -> decentralized chain genesis import
 ```
 
-After migration, new `$VEC` should be minted by protocol rules:
+After migration, new `$VCTY` should be minted by protocol rules:
 
 ```text
 finalized block
@@ -751,18 +751,18 @@ finalized block
 + valid scoring artifact
 + passed challenge window
 + deterministic payout formula
-= protocol-minted $VEC
+= protocol-minted $VCTY
 ```
 
 ## Round 73 Recommendation
 
-Because round 73 has been paused on Twitter for about a week, it is risky to use as the first serious `$VEC` checkpoint round unless the pause, resume, prediction deadline, and PoW rules are clearly posted and included in the manifest.
+Because round 73 has been paused on Twitter for about a week, it is risky to use as the first serious `$VCTY` checkpoint round unless the pause, resume, prediction deadline, and PoW rules are clearly posted and included in the manifest.
 
 Safer path:
 
 ```text
 Round 73: publish paused/void/resume decision clearly
-Round 74: first signed-$VEC checkpoint round with public predictions, PoW, and the human player included from the start
+Round 74: first signed-$VCTY checkpoint round with public predictions, PoW, and the human player included from the start
 ```
 
 ## Minimum Player Promise
@@ -770,7 +770,7 @@ Round 74: first signed-$VEC checkpoint round with public predictions, PoW, and t
 The player-facing promise should be:
 
 ```text
-If your public prediction is posted before the deadline, has valid proof-of-work, is scored in the round artifact, and your reward appears in a signed $VEC checkpoint, that $VEC balance will be included in the future migration set.
+If your public prediction is posted before the deadline, has valid proof-of-work, is scored in the round artifact, and your reward appears in a signed $VCTY checkpoint, that $VCTY balance will be included in the future migration set.
 ```
 
 Avoid stronger claims until decentralized finality exists.

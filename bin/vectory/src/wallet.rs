@@ -59,7 +59,7 @@ impl Wallet {
         let private_key_hex = hex::encode(signing_key.to_bytes());
         let public_key_bytes = signing_key.verifying_key().to_bytes();
         let public_key = URL_SAFE_NO_PAD.encode(public_key_bytes);
-        let address = format!("vec1{}", public_key);
+        let address = format!("vcty1{}", public_key);
         Self {
             private_key_hex,
             public_key,
@@ -120,13 +120,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn wallet_address_starts_with_vec1_and_round_trips() {
+    fn wallet_address_starts_with_vcty1_and_round_trips() {
         let wallet = Wallet::from_private_key_hex(
             "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         )
         .unwrap();
 
-        assert!(wallet.address.starts_with("vec1"));
+        assert!(wallet.address.starts_with("vcty1"));
         assert!(wallet.address.len() > 20);
 
         let loaded = Wallet::from_private_key_hex(&wallet.private_key_hex).unwrap();

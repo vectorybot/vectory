@@ -215,7 +215,7 @@ mod tests {
             "vectory-v1",
             "vectory-local",
             "12345",
-            "vec1abc",
+            "vcty1abc",
             "prediction",
             "bge-m3",
             0,

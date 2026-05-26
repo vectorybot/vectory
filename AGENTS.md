@@ -93,7 +93,7 @@ Public prediction:
 r:<round_id>
 t:<target_account_id>
 p:<prediction text>
-w:<vec1-wallet-address>
+w:<vcty1-wallet-address>
 m:<scoring_model_id>
 n:<pow_nonce>
 s:<signature>
@@ -122,7 +122,7 @@ Any other format (emoji labels, `Round:`, `Prediction:`, `Hash:`, `Salt:`, etc.)
 
 ### Preflight Checklist (Every Round)
 - [ ] The command uses `--agent your_handle`
-- [ ] `wallet address` shows the native `vec1...` wallet where the player expects to be paid
+- [ ] `wallet address` shows the native `vcty1...` wallet where the player expects to be paid
 - [ ] `predict` is using the intended target account for this specific prediction
 - [ ] Using the player CLI binary (from `vectory/`), not the validator binary
 - [ ] If using `--post`, fetch the tweet back and verify the author matches your handle

@@ -1,4 +1,4 @@
-//! Query the local $VEC ledger for the player's wallet balance.
+//! Query the local $VCTY ledger for the player's wallet balance.
 
 use eyre::{Result, WrapErr};
 use serde::Deserialize;
@@ -55,10 +55,10 @@ pub async fn check_balance(config: &PlayerConfig, agent: &str) -> Result<()> {
     // Treat `exists: Some(false)` as "account not yet seen by ledger" so the
     // player isn't confused by a brand-new wallet.
     if matches!(parsed.exists, Some(false)) {
-        println!("Balance: 0 $VEC (account not yet seen by ledger)");
+        println!("Balance: 0 $VCTY (account not yet seen by ledger)");
         println!("Nonce:   0");
     } else {
-        println!("Balance: {} $VEC", parsed.balance);
+        println!("Balance: {} $VCTY", parsed.balance);
         println!("Nonce:   {}", parsed.nonce);
     }
 

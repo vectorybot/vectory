@@ -16,7 +16,7 @@ pub struct PlayerConfig {
     pub twitter: Option<TwitterCreds>,
     #[serde(default)]
     pub game: GameSettings,
-    /// Optional override for the local $VEC ledger HTTP URL.
+    /// Optional override for the local $VCTY ledger HTTP URL.
     /// Defaults to `http://127.0.0.1:3000` when unset.
     #[serde(default)]
     pub ledger_url: Option<String>,

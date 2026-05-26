@@ -1,4 +1,4 @@
-//! Verify a signed $VEC ledger receipt against the trusted validator pubkey.
+//! Verify a signed $VCTY ledger receipt against the trusted validator pubkey.
 
 use base64::{Engine as _, engine::general_purpose};
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
@@ -99,7 +99,7 @@ pub fn verify_receipt(config: &PlayerConfig, agent: &str, tx_file: &Path) -> Res
         "  To:      {} (matches your wallet)",
         receipt.receiver
     );
-    println!("  Amount:  {} $VEC", receipt.amount);
+    println!("  Amount:  {} $VCTY", receipt.amount);
     println!("  Nonce:   {}", receipt.nonce);
     println!("  Signer:  validator (matches trusted pubkey)");
     Ok(())

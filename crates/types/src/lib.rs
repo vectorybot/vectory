@@ -97,7 +97,7 @@ pub struct Commitment {
     pub hash: String,
     /// Payout wallet address. Legacy rounds: 0x... (USDC on Base, no longer
     /// active). New rounds carry the wallet inside the prediction payload
-    /// (`w:vec1...`); this field is kept for backward compatibility with
+    /// (`w:vcty1...`); this field is kept for backward compatibility with
     /// historical commitments and may be `None` for new entries.
     pub address: Option<String>,
     /// Tweet ID of commitment reply

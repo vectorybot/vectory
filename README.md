@@ -12,7 +12,7 @@ The CLI still contains the older hidden commit/reveal commands for old rounds. N
 4. **Scoring** — Predictions are embedded with BGE-M3 and scored by cosine similarity against each prediction's chosen target tweet.
 5. **Results** — Accepted predictions share one round reward pool according to relative score.
 
-Native `$VEC` rewards are not checkpointed or spendable yet. The wallet address is included now so accepted predictions can be paid against the same native identity as the chain integration matures.
+Native `$VCTY` rewards are not checkpointed or spendable yet. The wallet address is included now so accepted predictions can be paid against the same native identity as the chain integration matures.
 
 ## Quick Start
 
@@ -190,7 +190,7 @@ Use this for current public prediction rounds:
 r:<round_id>
 t:<target_account_id>
 p:<prediction text>
-w:<vec1-wallet-address>
+w:<vcty1-wallet-address>
 m:<scoring_model_id>
 n:<pow_nonce>
 s:<signature>

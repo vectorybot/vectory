@@ -37,12 +37,12 @@
 :IMPACT: Turns player-posted public predictions into accepted game entries.
 :END:
 
-** NEXT Add signed native =$VEC= checkpoints :vec:rewards:chain_mvp:
+** NEXT Add signed native =$VCTY= checkpoints :vec:rewards:chain_mvp:
 :PROPERTIES:
 :OWNER: David
 :SOURCE: Signed checkpoint MVP direction, 2026-05-12
 :NEXT_ACTION: Define the minimal checkpoint payload, validator signature, reward pool allocation, and player verification command.
-:IMPACT: Lets players earn internally minted =$VEC= that can remain spendable when the full chain is integrated later.
+:IMPACT: Lets players earn internally minted =$VCTY= that can remain spendable when the full chain is integrated later.
 :END:
 
 ** TODO Revise round commands for public prediction rounds :cli:rounds:
@@ -91,8 +91,8 @@
 :PROPERTIES:
 :OWNER: David
 :SOURCE: Current MVP gap
-:NEXT_ACTION: Unblocked by signed =$VEC= checkpoint payload and validator reward settlement implementation.
-:IMPACT: Players can create accepted prediction entries before they can verify or spend earned native =$VEC=.
+:NEXT_ACTION: Unblocked by signed =$VCTY= checkpoint payload and validator reward settlement implementation.
+:IMPACT: Players can create accepted prediction entries before they can verify or spend earned native =$VCTY=.
 :END:
 
 ** BLOCKED Public prediction settlement is not implemented yet :validator:scoring:
@@ -269,7 +269,7 @@
 :OWNER: David
 :SOURCE: =THESIS.md=
 :NEXT_ACTION: Decide how native wallet addresses, signed checkpoints, temporary balances, and future migration into the full chain fit together.
-:IMPACT: Keeps early =$VEC= rewards durable without pretending the full blockchain exists.
+:IMPACT: Keeps early =$VCTY= rewards durable without pretending the full blockchain exists.
 :END:
 
 ** OPEN_QUESTION How should Vectory be described publicly? :compliance:language:
@@ -300,15 +300,15 @@
 ** TODO Define signed checkpoint MVP data types :vec:checkpoint:
 :PROPERTIES:
 :OWNER: David
-:SOURCE: =docs/vec_signed_checkpoint_mvp.md=
+:SOURCE: =docs/vcty_signed_checkpoint_mvp.md=
 :NEXT_ACTION: Define =PredictionRecord=, =PlayerScore=, =RoundManifestInput=, =CollectedRoundEvents=, =BalanceRecord=, and =VerificationBundle= before implementing checkpoint settlement.
-:IMPACT: These types carry the proof surface players need to verify accepted predictions and earned =$VEC=.
+:IMPACT: These types carry the proof surface players need to verify accepted predictions and earned =$VCTY=.
 :END:
 
 ** TODO Define signed checkpoint operator functions :vec:checkpoint:
 :PROPERTIES:
 :OWNER: David
-:SOURCE: =docs/vec_signed_checkpoint_mvp.md=
+:SOURCE: =docs/vcty_signed_checkpoint_mvp.md=
 :NEXT_ACTION: Turn the draft =create_round_manifest=, =collect_round_events=, =score_round=, and =create_vec_checkpoint= signatures into implementable interfaces with canonical input/output payloads.
 :IMPACT: Prevents checkpoint code from accepting arbitrary rewards or incomplete evidence as operator input.
 :END:

@@ -143,7 +143,7 @@ mod tests {
             "vectory-v1",
             "vectory-local",
             "12345",
-            "vec1abc",
+            "vcty1abc",
             "the target will discuss open source models",
             "bge-m3",
             0,
@@ -152,7 +152,7 @@ mod tests {
 
         assert_eq!(
             commitment.canonical_payload,
-            "protocol_version:vectory-v1\nchain_id:vectory-local\ntarget_account_id:12345\nwallet:vec1abc\nprediction_text:the target will discuss open source models\nscoring_model_id:bge-m3"
+            "protocol_version:vectory-v1\nchain_id:vectory-local\ntarget_account_id:12345\nwallet:vcty1abc\nprediction_text:the target will discuss open source models\nscoring_model_id:bge-m3"
         );
     }
 
@@ -162,7 +162,7 @@ mod tests {
             "vectory-v1",
             "vectory-local",
             "12345",
-            "vec1abc",
+            "vcty1abc",
             "the target will discuss open source models",
             "bge-m3",
             8,
