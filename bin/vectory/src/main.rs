@@ -1,7 +1,7 @@
 mod balance;
 mod commit;
+mod conceal_commit;
 mod config;
-mod predict;
 mod prediction_commitment;
 mod predictions;
 mod reveal;
@@ -187,8 +187,6 @@ async fn main() -> Result<()> {
             }
         },
 
-        // The public-prediction flow is the canonical `commit` command; it is
-        // implemented by the `predict` module (the historical name).
         Command::Commit {
             target_account_id,
             prediction,
@@ -200,10 +198,10 @@ async fn main() -> Result<()> {
             tweet_id,
         } => {
             let config = config::PlayerConfig::load_if_exists(&cli.agent)?;
-            predict::predict(
+            commit::commit(
                 config.as_ref(),
                 &cli.agent,
-                predict::PredictOptions {
+                commit::CommitOptions {
                     target_account_id,
                     prediction,
                     scoring_model_id,
@@ -217,8 +215,7 @@ async fn main() -> Result<()> {
             .await?;
         }
 
-        // Legacy concealed commit/reveal flow (`conceal-commit`), implemented by
-        // the `commit` module. Hidden from --help; kept only for old rounds.
+        // Legacy concealed commit/reveal flow. Hidden from --help; old rounds only.
         Command::ConcealCommit {
             round_id,
             prediction,
@@ -226,7 +223,7 @@ async fn main() -> Result<()> {
             tweet_id,
         } => {
             let config = config::PlayerConfig::load(&cli.agent)?;
-            commit::commit(
+            conceal_commit::conceal_commit(
                 &config,
                 &cli.agent,
                 &round_id,
@@ -262,8 +259,8 @@ async fn main() -> Result<()> {
         }
 
         Command::Hash { prediction, salt } => {
-            let salt = salt.unwrap_or_else(commit::generate_salt);
-            let hash = commit::compute_hash(&prediction, &salt);
+            let salt = salt.unwrap_or_else(conceal_commit::generate_salt);
+            let hash = conceal_commit::compute_hash(&prediction, &salt);
             println!("prediction: {}", prediction);
             println!("salt:       {}", salt);
             println!("hash:       {}", hash);
