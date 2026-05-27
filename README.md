@@ -2,7 +2,7 @@
 
 Vectory is a Twitter-native semantic prediction game. The current direction is public predictions with proof-of-work: players publicly commit to a prediction, choose the target account inside the round, and attach enough work to reduce spam. Predictions are scored by semantic similarity using BGE-M3 embeddings.
 
-The CLI still contains the older hidden commit/reveal commands for old rounds. New public prediction work should use `wallet` and `predict`.
+The CLI still contains the older concealed commit/reveal commands for old rounds. New public prediction work should use `wallet` and `commit`.
 
 ## How a Round Works
 
@@ -72,7 +72,7 @@ The wallet private key is stored locally under `~/.vectory/agents/your_handle/wa
 Use this path if you do not have a Twitter API key. The CLI generates the exact tweet text, then you paste it into Twitter/X yourself.
 
 ```bash
-cargo run -p vectory -- --agent your_handle predict \
+cargo run -p vectory -- --agent your_handle commit \
   --target-account-id some_target \
   --prediction "Your public prediction text"
 ```
@@ -107,7 +107,7 @@ game:
 Post a standalone prediction:
 
 ```bash
-cargo run -p vectory -- --agent your_handle predict \
+cargo run -p vectory -- --agent your_handle commit \
   --target-account-id some_target \
   --prediction "Your public prediction text" \
   --post
@@ -116,7 +116,7 @@ cargo run -p vectory -- --agent your_handle predict \
 Quote the round announcement instead:
 
 ```bash
-cargo run -p vectory -- --agent your_handle predict \
+cargo run -p vectory -- --agent your_handle commit \
   --target-account-id some_target \
   --prediction "Your public prediction text" \
   --tweet-id <announcement_tweet_id> \
@@ -125,9 +125,9 @@ cargo run -p vectory -- --agent your_handle predict \
 
 Both paths do the same local work: check Supabase for the active round, create a signed public prediction commitment, mine a simple SHA-256 proof-of-work nonce, save a local receipt, and then either print or post the canonical tweet text.
 
-### Legacy Hidden Commit/Reveal Flow
+### Legacy Concealed Commit/Reveal Flow
 
-This is the legacy hidden commit/reveal flow. Keep it only for old rounds that still use that protocol.
+This is the legacy concealed commit/reveal flow. Keep it only for old rounds that still use that protocol. The `conceal-commit` and `reveal` commands are hidden from `--help` but remain callable.
 
 **1. Check active rounds:**
 
@@ -138,7 +138,7 @@ cargo run -p vectory -- --agent your_handle rounds
 **2. Submit a commitment:**
 
 ```bash
-cargo run -p vectory -- --agent your_handle commit \
+cargo run -p vectory -- --agent your_handle conceal-commit \
   --round-id 46 \
   --prediction "Your prediction text here" \
   --tweet-id <announcement_tweet_id>
@@ -243,7 +243,7 @@ Before every public prediction:
 
 The Twitter API may block replies to tweets from accounts that have not mentioned or followed you. If API posting fails:
 
-- Run `predict` again without `--post` and paste the printed text manually
+- Run `commit` again without `--post` and paste the printed text manually
 - Quote-tweet the announcement instead of replying
 - Keep the canonical prediction body unchanged
 
@@ -254,9 +254,9 @@ The validator collection strategy is to search replies, quotes, mentions, hashta
 | Pitfall | Symptom | Fix |
 |---------|---------|-----|
 | Wrong binary | Your tweet appears as `@vectorybot` | Use the player CLI from this repo with `--agent your_handle` |
-| Format drift | Prediction not collected | Use the CLI's `predict` command and paste the printed text exactly |
-| No active round | `predict` says no active round found | Wait for the validator to announce/open a round in Supabase |
-| Missing Supabase config | `predict` cannot find `SUPABASE_URL` or `SUPABASE_ANON_KEY` | Set the public Supabase values in env vars or `config.yaml` |
+| Format drift | Prediction not collected | Use the CLI's `commit` command and paste the printed text exactly |
+| No active round | `commit` says no active round found | Wait for the validator to announce/open a round in Supabase |
+| Missing Supabase config | `commit` cannot find `SUPABASE_URL` or `SUPABASE_ANON_KEY` | Set the public Supabase values in env vars or `config.yaml` |
 | Missing Twitter API key | `--post` fails before posting | Run without `--post` and paste manually, or add OAuth 1.0a credentials |
 | Config contamination | Tweets post from wrong account | For API posting, keep only your account config under `~/.vectory/agents/` |
 | Reply 403 | Twitter blocks your reply to the announcement | Run without `--post` and paste manually, or quote the announcement |
@@ -271,13 +271,19 @@ The validator collection strategy is to search replies, quotes, mentions, hashta
 | `rounds` | List active rounds |
 | `wallet create` | Create a native Vectory wallet |
 | `wallet address` | Show native Vectory wallet address |
-| `predict` | Generate or post a public prediction commitment with PoW |
-| `commit` | Generate hash, save prediction, post commitment tweet |
-| `reveal` | Load saved prediction, post reveal tweet |
+| `commit` | Generate or post a public prediction commitment with PoW |
 | `results` | Fetch round results |
 | `verify` | Verify round scoring independently |
 | `show` | Display your saved prediction for a round |
 | `hash` | Compute commitment hash offline (no tweet posted) |
+
+### Ledger Commands
+
+| Command | Description |
+|---------|-------------|
+| `balance` | Show this agent's `$VCTY` balance from the local ledger |
+| `validator-info` | Fetch and cache the validator's public key from the ledger |
+| `verify-receipt` | Verify a signed `$VCTY` ledger receipt against the trusted validator pubkey |
 
 ### Twitter Utilities
 
@@ -286,6 +292,13 @@ The validator collection strategy is to search replies, quotes, mentions, hashta
 | `tweet` | Post a standalone tweet |
 | `quote` | Quote-tweet another tweet |
 | `reply` | Reply to a tweet |
+
+### Legacy Commands (hidden from `--help`)
+
+| Command | Description |
+|---------|-------------|
+| `conceal-commit` | Legacy concealed commit — generate hash, save prediction, post commitment tweet |
+| `reveal` | Legacy reveal — load saved prediction, post reveal tweet |
 
 ## Staying In Sync
 

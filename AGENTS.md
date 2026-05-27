@@ -12,6 +12,7 @@
    - `README.md` for player-facing workflow and onboarding documentation
 3. Borrow reusable workflow patterns from other projects, but do **not** copy their project-specific status, stakeholders, or dated context into this repo.
 4. End each task by running the narrowest meaningful verification, updating the docs touched by the change, and explicitly noting any remaining risk or unverified path. If that risk or gap remains active, add or update a `PROJECT_STATUS.org` item.
+5. **Whenever the player-facing CLI surface changes — a command added, removed, renamed, hidden, or its flags/behavior changed — update `README.md` in the same change.** The `## CLI Commands` tables and the Quick Start examples must always match the actual `vectory --help` output. Run `cargo run -p vectory -- --agent x --help` and reconcile before considering the task done.
 
 ## Project Structure & Module Organization
 - `bin/vectory/` is the player CLI binary crate; entry point is `bin/vectory/src/main.rs`.
@@ -82,7 +83,7 @@
 1. Build the player CLI: `cargo build -p vectory`
 2. Set public Supabase config through `SUPABASE_URL`/`SUPABASE_ANON_KEY` or `~/.vectory/agents/<handle>/config.yaml`
 3. Create a native wallet: `cargo run -p vectory -- --agent <handle> wallet create`
-4. Use `predict` without `--post` for manual copy/paste posting, or configure OAuth 1.0a credentials only if the CLI should post for the player
+4. Use `commit` without `--post` for manual copy/paste posting, or configure OAuth 1.0a credentials only if the CLI should post for the player
 5. For API posting, verify config isolation: `ls ~/.vectory/agents/` should show ONLY your handle
 
 ### Canonical Formats (Non-Negotiable)
@@ -116,14 +117,14 @@ Any other format (emoji labels, `Round:`, `Prediction:`, `Hash:`, `Salt:`, etc.)
 ### Common Failure Modes (from rounds 44-46)
 1. **Wrong binary**: Using any binary other than the player CLI in this repo can cause tweets to post from the wrong account. Always use the player CLI with `--agent your_handle`.
 2. **Format drift**: Adding labels, emojis, hashtags inside the canonical prediction body, or hand-editing field names. The CLI auto-formats correctly — paste its output exactly.
-3. **Missing Supabase config**: `predict` cannot derive the active round without the public Supabase URL and anon key.
+3. **Missing Supabase config**: `commit` cannot derive the active round without the public Supabase URL and anon key.
 4. **Config contamination**: Having multiple agent configs in `~/.vectory/agents/` can cause the CLI to pick the wrong account when using `--post`. Keep only your own for API posting.
 5. **API reply 403**: Twitter blocks some API replies. Run without `--post` and paste manually, or quote-tweet the announcement instead.
 
 ### Preflight Checklist (Every Round)
 - [ ] The command uses `--agent your_handle`
 - [ ] `wallet address` shows the native `vcty1...` wallet where the player expects to be paid
-- [ ] `predict` is using the intended target account for this specific prediction
+- [ ] `commit` is using the intended target account for this specific prediction
 - [ ] Using the player CLI binary (from `vectory/`), not the validator binary
 - [ ] If using `--post`, fetch the tweet back and verify the author matches your handle
 

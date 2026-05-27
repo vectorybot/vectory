@@ -38,8 +38,8 @@ enum Command {
         command: WalletCommand,
     },
 
-    /// Make a public prediction commitment with proof-of-work
-    Predict {
+    /// Commit to a public prediction with proof-of-work
+    Commit {
         /// Target Twitter account id or handle
         #[arg(long)]
         target_account_id: String,
@@ -66,8 +66,9 @@ enum Command {
         tweet_id: Option<String>,
     },
 
-    /// Commit a prediction to a round
-    Commit {
+    /// Legacy concealed commit (sealed hash now, reveal later) — only for old rounds
+    #[command(name = "conceal-commit", hide = true)]
+    ConcealCommit {
         /// Round ID
         #[arg(long)]
         round_id: String,
@@ -82,7 +83,8 @@ enum Command {
         tweet_id: String,
     },
 
-    /// Reveal your prediction for a round
+    /// Legacy reveal for the concealed commit flow — only for old rounds
+    #[command(hide = true)]
     Reveal {
         /// Round ID
         #[arg(long)]
@@ -185,7 +187,9 @@ async fn main() -> Result<()> {
             }
         },
 
-        Command::Predict {
+        // The public-prediction flow is the canonical `commit` command; it is
+        // implemented by the `predict` module (the historical name).
+        Command::Commit {
             target_account_id,
             prediction,
             scoring_model_id,
@@ -213,7 +217,9 @@ async fn main() -> Result<()> {
             .await?;
         }
 
-        Command::Commit {
+        // Legacy concealed commit/reveal flow (`conceal-commit`), implemented by
+        // the `commit` module. Hidden from --help; kept only for old rounds.
+        Command::ConcealCommit {
             round_id,
             prediction,
             salt,
