@@ -18,10 +18,11 @@ Native `$VCTY` rewards are not checkpointed or spendable yet. The wallet address
 
 ### Prerequisites
 
-- Rust 1.93+
 - A Twitter account to play as
-- Public Vectory Supabase URL and anon key so the CLI can find the active round
+- Either the released `vectory` binary (recommended) **or** Rust 1.93+ to build from source
 - Optional: Twitter API credentials (OAuth 1.0a) if you want the CLI to post for you
+
+The released binary has the public Supabase URL and anon key baked in at build time, so it works with no config out of the box. Building from source skips the bake and requires the Shared Setup below.
 
 ### Build
 
@@ -35,9 +36,11 @@ cargo build -p vectory
 
 Every command below passes `--agent your_handle`, where `your_handle` is your Twitter handle without `@`.
 
-### Shared Setup
+### Shared Setup (source builds only)
 
-The public prediction command needs to read the active round from Supabase. Ask the Vectory team for the public Supabase URL and anon key until they are packaged with a release. Set them either as environment variables:
+**If you downloaded the released `vectory` binary, skip this section** — the public Supabase URL and anon key are baked in at build time and resolve automatically.
+
+If you built from source (`cargo build`), the `commit`, `results`, and `verify` commands need the public Supabase URL and anon key. Ask the Vectory team for the current values. Set them either as environment variables:
 
 ```bash
 export SUPABASE_URL="https://..."
@@ -52,6 +55,8 @@ game:
   supabase_url: "${SUPABASE_URL}"
   supabase_anon_key: "${SUPABASE_ANON_KEY}"
 ```
+
+Resolution order is: `config.yaml` field → env var → release-baked default.
 
 Create a native Vectory wallet once:
 

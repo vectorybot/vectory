@@ -98,17 +98,24 @@ impl PlayerConfig {
     }
 
     pub fn supabase_url(&self) -> Option<String> {
+        // Resolution order: config.yaml field → SUPABASE_URL env var →
+        // compile-time `option_env!` baked into the release binary.
+        // The baked default is set by CI from a repo secret at build time,
+        // so end users running the released `vectory` binary need no config.
         self.game
             .supabase_url
             .clone()
             .or_else(|| std::env::var("SUPABASE_URL").ok())
+            .or_else(|| option_env!("SUPABASE_URL").map(String::from))
     }
 
     pub fn supabase_anon_key(&self) -> Option<String> {
+        // Same resolution order as `supabase_url` — see comment above.
         self.game
             .supabase_anon_key
             .clone()
             .or_else(|| std::env::var("SUPABASE_ANON_KEY").ok())
+            .or_else(|| option_env!("SUPABASE_ANON_KEY").map(String::from))
     }
 
     pub fn validator_username(&self) -> Result<&str> {

@@ -118,16 +118,27 @@ fn twitter_client_for_post(config: Option<&PlayerConfig>) -> Result<TwitterClien
 }
 
 async fn fetch_active_round_id(config: Option<&PlayerConfig>) -> Result<String> {
+    // When config is None (no config.yaml), `config.supabase_url()` is skipped,
+    // so we duplicate the env-var and baked-default fallbacks here. With config
+    // present, the first step already covers the full chain.
     let url = config
         .and_then(|config| config.supabase_url())
         .or_else(|| std::env::var("SUPABASE_URL").ok())
-        .ok_or_else(|| eyre::eyre!("No supabase_url in config or SUPABASE_URL env var"))?;
+        .or_else(|| option_env!("SUPABASE_URL").map(String::from))
+        .ok_or_else(|| {
+            eyre::eyre!(
+                "No supabase_url available (config.yaml, SUPABASE_URL env var, or release-baked default)"
+            )
+        })?;
 
     let anon_key = config
         .and_then(|config| config.supabase_anon_key())
         .or_else(|| std::env::var("SUPABASE_ANON_KEY").ok())
+        .or_else(|| option_env!("SUPABASE_ANON_KEY").map(String::from))
         .ok_or_else(|| {
-            eyre::eyre!("No supabase_anon_key in config or SUPABASE_ANON_KEY env var")
+            eyre::eyre!(
+                "No supabase_anon_key available (config.yaml, SUPABASE_ANON_KEY env var, or release-baked default)"
+            )
         })?;
 
     let resp = reqwest::Client::new()
