@@ -1,13 +1,13 @@
 # Vectory — Player CLI
 
-Vectory is a Twitter-native semantic prediction game. The current direction is public predictions with proof-of-work: players publicly commit to a prediction, choose the target account inside the round, and attach enough work to reduce spam. Predictions are scored by semantic similarity using BGE-M3 embeddings.
+Vectory is a Twitter-native semantic prediction game. The current direction is public predictions: players publicly commit to a prediction and choose the target account inside the round. Predictions are scored by semantic similarity using BGE-M3 embeddings.
 
 The CLI still contains the older concealed commit/reveal commands for old rounds. New public prediction work should use `wallet` and `commit`.
 
 ## How a Round Works
 
 1. **Announcement** — Rounds are manually announced by the validator for now.
-2. **Predict** — Players post a plaintext prediction commitment with a native Vectory wallet address, signature, target account, and proof-of-work nonce.
+2. **Predict** — Players post a plaintext prediction commitment with a native Vectory wallet address, signature, and target account.
 3. **Target window** — The chosen target account has 24 hours after the announced round closes to produce the target tweet/event.
 4. **Scoring** — Predictions are embedded with BGE-M3 and scored by cosine similarity against each prediction's chosen target tweet.
 5. **Results** — Accepted predictions share one round reward pool according to relative score.
@@ -173,7 +173,7 @@ vectory --agent your_handle commit \
   --post
 ```
 
-Both paths do the same local work: check Supabase for the active round, create a signed public prediction commitment, mine a simple SHA-256 proof-of-work nonce, save a local receipt, and then either print or post the canonical tweet text.
+Both paths do the same local work: check Supabase for the active round, create a signed public prediction commitment, save a local receipt, and then either print or post the canonical tweet text.
 
 ### Legacy Concealed Commit/Reveal Flow
 
@@ -321,7 +321,7 @@ The validator collection strategy is to search replies, quotes, mentions, hashta
 | `rounds` | List active rounds |
 | `wallet create` | Create a native Vectory wallet |
 | `wallet address` | Show native Vectory wallet address |
-| `commit` | Generate or post a public prediction commitment with PoW |
+| `commit` | Generate or post a public prediction commitment |
 | `results` | Fetch round results |
 | `verify` | Verify round scoring independently |
 | `show` | Display your saved prediction for a round |
