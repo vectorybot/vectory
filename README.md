@@ -24,15 +24,60 @@ Native `$VCTY` rewards are not checkpointed or spendable yet. The wallet address
 
 The released binary has the public Supabase URL and anon key baked in at build time, so it works with no config out of the box. Building from source skips the bake and requires the Shared Setup below.
 
-### Build
+### Install (released binary, recommended)
 
-Always pull the latest code and rebuild before each round to ensure you have the current canonical formats:
+Grab the build for your platform from the [latest release](https://github.com/vectorybot/vectory/releases/latest).
+
+**macOS (Apple Silicon)**
+
+```bash
+curl -L -o /tmp/vectory.tar.gz \
+  https://github.com/vectorybot/vectory/releases/latest/download/vectory-aarch64-macos.tar.gz
+tar -xzf /tmp/vectory.tar.gz -C /tmp
+sudo mv /tmp/vectory /usr/local/bin/vectory
+sudo xattr -d com.apple.quarantine /usr/local/bin/vectory   # clear macOS Gatekeeper
+vectory --help
+```
+
+**Linux (x86_64)**
+
+```bash
+curl -L -o /tmp/vectory.tar.gz \
+  https://github.com/vectorybot/vectory/releases/latest/download/vectory-x86_64-linux.tar.gz
+tar -xzf /tmp/vectory.tar.gz -C /tmp
+sudo mv /tmp/vectory /usr/local/bin/vectory
+vectory --help
+```
+
+**Windows (x86_64)**
+
+In PowerShell:
+
+```powershell
+Invoke-WebRequest -Uri https://github.com/vectorybot/vectory/releases/latest/download/vectory-x86_64-windows.zip -OutFile $env:TEMP\vectory.zip
+Expand-Archive -Path $env:TEMP\vectory.zip -DestinationPath $env:LOCALAPPDATA\Vectory -Force
+# Add %LOCALAPPDATA%\Vectory to your PATH (System Properties → Environment Variables)
+vectory --help
+```
+
+Optional — verify the binary against the release checksums:
+
+```bash
+curl -L -o SHA256SUMS https://github.com/vectorybot/vectory/releases/latest/download/SHA256SUMS
+shasum -a 256 -c SHA256SUMS --ignore-missing
+```
+
+### Or: build from source
+
+Use this path only if you want to edit the code, audit it, or run on a platform we don't ship binaries for (e.g. Intel macOS). Requires Rust 1.93+ and a clone of this repo.
 
 ```bash
 cd vectory
 git pull
 cargo build -p vectory
 ```
+
+When using a source build, run commands as `cargo run -p vectory -- <args>` instead of `vectory <args>` — i.e. prefix every `vectory` command in this guide with `cargo run -p vectory --`.
 
 Every command below passes `--agent your_handle`, where `your_handle` is your Twitter handle without `@`.
 
@@ -61,13 +106,13 @@ Resolution order is: `config.yaml` field → env var → release-baked default.
 Create a native Vectory wallet once:
 
 ```bash
-cargo run -p vectory -- --agent your_handle wallet create
+vectory --agent your_handle wallet create
 ```
 
 Show your payment address:
 
 ```bash
-cargo run -p vectory -- --agent your_handle wallet address
+vectory --agent your_handle wallet address
 ```
 
 The wallet private key is stored locally under `~/.vectory/agents/your_handle/wallet.json`. Do not share it.
@@ -77,7 +122,7 @@ The wallet private key is stored locally under `~/.vectory/agents/your_handle/wa
 Use this path if you do not have a Twitter API key. The CLI generates the exact tweet text, then you paste it into Twitter/X yourself.
 
 ```bash
-cargo run -p vectory -- --agent your_handle commit \
+vectory --agent your_handle commit \
   --target-account-id some_target \
   --prediction "Your public prediction text"
 ```
@@ -112,7 +157,7 @@ game:
 Post a standalone prediction:
 
 ```bash
-cargo run -p vectory -- --agent your_handle commit \
+vectory --agent your_handle commit \
   --target-account-id some_target \
   --prediction "Your public prediction text" \
   --post
@@ -121,7 +166,7 @@ cargo run -p vectory -- --agent your_handle commit \
 Quote the round announcement instead:
 
 ```bash
-cargo run -p vectory -- --agent your_handle commit \
+vectory --agent your_handle commit \
   --target-account-id some_target \
   --prediction "Your public prediction text" \
   --tweet-id <announcement_tweet_id> \
@@ -137,13 +182,13 @@ This is the legacy concealed commit/reveal flow. Keep it only for old rounds tha
 **1. Check active rounds:**
 
 ```bash
-cargo run -p vectory -- --agent your_handle rounds
+vectory --agent your_handle rounds
 ```
 
 **2. Submit a commitment:**
 
 ```bash
-cargo run -p vectory -- --agent your_handle conceal-commit \
+vectory --agent your_handle conceal-commit \
   --round-id 46 \
   --prediction "Your prediction text here" \
   --tweet-id <announcement_tweet_id>
@@ -159,7 +204,7 @@ address:<0x-address>
 **3. After the target tweets, submit your reveal:**
 
 ```bash
-cargo run -p vectory -- --agent your_handle reveal \
+vectory --agent your_handle reveal \
   --round-id 46 \
   --tweet-id <reveals_open_tweet_id>
 ```
@@ -174,13 +219,13 @@ s:<salt>
 **4. Check results:**
 
 ```bash
-cargo run -p vectory -- --agent your_handle results 46
+vectory --agent your_handle results 46
 ```
 
 **5. Verify scoring independently:**
 
 ```bash
-cargo run -p vectory -- --agent your_handle verify 46
+vectory --agent your_handle verify 46
 ```
 
 ## Canonical Tweet Formats
@@ -307,7 +352,11 @@ The validator collection strategy is to search replies, quotes, mentions, hashta
 
 ## Staying In Sync
 
-This repo is actively evolving. Before every round and after any retro:
+Vectory is actively evolving. Before every round, update to the latest version.
+
+**Released binary** — re-run your platform's install commands above. The `/releases/latest/` URL always resolves to the newest tagged release.
+
+**Source build**
 
 ```bash
 git pull
