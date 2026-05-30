@@ -24,7 +24,11 @@ Native `$VCTY` rewards are not checkpointed or spendable yet. The wallet address
 
 The released binary has the public Supabase URL and anon key baked in at build time, so it works with no config out of the box. Building from source skips the bake and requires the Shared Setup below.
 
-### Install (released binary, recommended)
+Every command below passes `--agent your_handle`, where `your_handle` is your Twitter handle without `@`.
+
+### 1. Install
+
+#### Option A — Released binary (recommended)
 
 Grab the build for your platform from the [latest release](https://github.com/vectorybot/vectory/releases/latest).
 
@@ -67,7 +71,7 @@ curl -L -o SHA256SUMS https://github.com/vectorybot/vectory/releases/latest/down
 shasum -a 256 -c SHA256SUMS --ignore-missing
 ```
 
-### Or: build from source
+#### Option B — Build from source
 
 Use this path only if you want to edit the code, audit it, or run on a platform we don't ship binaries for (e.g. Intel macOS). Requires Rust 1.93+ and a clone of this repo.
 
@@ -79,45 +83,24 @@ cargo build -p vectory
 
 When using a source build, run commands as `cargo run -p vectory -- <args>` instead of `vectory <args>` — i.e. prefix every `vectory` command in this guide with `cargo run -p vectory --`.
 
-Every command below passes `--agent your_handle`, where `your_handle` is your Twitter handle without `@`.
+Source builds also need the public Supabase URL and anon key (the released binary bakes these in). See [Source-build extras](#source-build-extras) at the end of Quick Start.
 
-### Shared Setup (source builds only)
+### 2. Create your wallet
 
-**If you downloaded the released `vectory` binary, skip this section** — the public Supabase URL and anon key are baked in at build time and resolve automatically.
-
-If you built from source (`cargo build`), the `commit`, `results`, and `verify` commands need the public Supabase URL and anon key. Ask the Vectory team for the current values. Set them either as environment variables:
-
-```bash
-export SUPABASE_URL="https://..."
-export SUPABASE_ANON_KEY="..."
-```
-
-Or put them in your agent config:
-
-```yaml
-# ~/.vectory/agents/your_handle/config.yaml
-game:
-  supabase_url: "${SUPABASE_URL}"
-  supabase_anon_key: "${SUPABASE_ANON_KEY}"
-```
-
-Resolution order is: `config.yaml` field → env var → release-baked default.
-
-Create a native Vectory wallet once:
+Every player needs a native Vectory wallet. The address is how prizes get paid to you and how your predictions are signed.
 
 ```bash
 vectory --agent your_handle wallet create
-```
-
-Show your payment address:
-
-```bash
 vectory --agent your_handle wallet address
 ```
 
-The wallet private key is stored locally under `~/.vectory/agents/your_handle/wallet.json`. Do not share it.
+The private key is stored locally under `~/.vectory/agents/your_handle/wallet.json`. Do not share it.
 
-### Path A: Manual Posting
+### 3. Post a prediction
+
+Pick one of the two paths below. Path A works with no Twitter API key. Path B lets the CLI post for you.
+
+#### Path A: Manual Posting
 
 Use this path if you do not have a Twitter API key. The CLI generates the exact tweet text, then you paste it into Twitter/X yourself.
 
@@ -129,7 +112,7 @@ vectory --agent your_handle commit \
 
 Copy the printed text exactly and post it as a reply or quote to the round announcement. The CLI also saves a local receipt under `~/.vectory/agents/your_handle/prediction-receipts/`.
 
-### Path B: API Posting
+#### Path B: API Posting
 
 Use this path if you want the CLI to publish the tweet for you. Set Twitter OAuth 1.0a credentials as environment variables:
 
@@ -174,6 +157,28 @@ vectory --agent your_handle commit \
 ```
 
 Both paths do the same local work: check Supabase for the active round, create a signed public prediction commitment, save a local receipt, and then either print or post the canonical tweet text.
+
+### Source-build extras
+
+**Skip this entire section if you installed the released binary** — Supabase config is baked in.
+
+If you built from source (`cargo build`), the `commit`, `results`, and `verify` commands need the public Supabase URL and anon key. Ask the Vectory team for the current values, then set them either as environment variables:
+
+```bash
+export SUPABASE_URL="https://..."
+export SUPABASE_ANON_KEY="..."
+```
+
+Or put them in your agent config:
+
+```yaml
+# ~/.vectory/agents/your_handle/config.yaml
+game:
+  supabase_url: "${SUPABASE_URL}"
+  supabase_anon_key: "${SUPABASE_ANON_KEY}"
+```
+
+Resolution order is: `config.yaml` field → env var → release-baked default.
 
 ### Legacy Concealed Commit/Reveal Flow
 
