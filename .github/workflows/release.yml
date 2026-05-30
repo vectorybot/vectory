@@ -1,7 +1,7 @@
 # Release workflow for the Vectory player CLI.
 #
 # Trigger: pushing a tag like `v0.2.0`, or manual dispatch from the Actions tab.
-# Build matrix: Linux x86_64, macOS x86_64 (Intel), macOS aarch64 (Apple Silicon).
+# Build matrix: Linux x86_64, macOS aarch64 (Apple Silicon), Windows x86_64.
 #
 # At build time, SUPABASE_URL and SUPABASE_ANON_KEY are pulled from repo
 # secrets and exposed as build-time env vars. `config.rs` reads them via
@@ -38,9 +38,15 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact: vectory-x86_64-linux
+            archive: tar.gz
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact: vectory-aarch64-macos
+            archive: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: vectory-x86_64-windows
+            archive: zip
           # Intel macOS (x86_64-apple-darwin) was dropped in v0.1.0: the
           # macos-13 hosted runner pool was unavailable / starved and jobs
           # queued indefinitely. Apple Silicon covers the vast majority of
@@ -70,20 +76,33 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: cargo build --release --target ${{ matrix.target }} -p vectory
 
-      - name: Strip binary
+      - name: Strip binary (Unix)
+        # Skip on Windows: MSVC PE binaries don't strip the same way and the
+        # size delta is minor.
+        if: matrix.archive == 'tar.gz'
         run: strip target/${{ matrix.target }}/release/vectory
 
-      - name: Package tarball
+      - name: Package tarball (Unix)
+        if: matrix.archive == 'tar.gz'
         run: |
           mkdir -p dist
           tar -czf "dist/${{ matrix.artifact }}.tar.gz" \
             -C "target/${{ matrix.target }}/release" vectory
 
+      - name: Package zip (Windows)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Compress-Archive `
+            -Path "target/${{ matrix.target }}/release/vectory.exe" `
+            -DestinationPath "dist/${{ matrix.artifact }}.zip"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.artifact }}.tar.gz
+          path: dist/${{ matrix.artifact }}.${{ matrix.archive }}
           retention-days: 7
 
   release:
@@ -101,14 +120,15 @@ jobs:
       - name: Generate SHA256 checksums
         run: |
           cd dist
-          shasum -a 256 *.tar.gz > SHA256SUMS
+          shasum -a 256 vectory-* > SHA256SUMS
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
-            dist/*.tar.gz
+            dist/vectory-*.tar.gz
+            dist/vectory-*.zip
             dist/SHA256SUMS
           generate_release_notes: true
           fail_on_unmatched_files: true
