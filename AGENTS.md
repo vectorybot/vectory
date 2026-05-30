@@ -46,6 +46,12 @@
 - Follow conventional-style commit messages: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
 - For PRs, include: summary, testing notes (commands run), and any relevant logs or screenshots.
 
+## Releases
+- The release workflow fires on `v*.*.*` tag pushes.
+- **Always bump `workspace.package.version` in `Cargo.toml` to match the tag in the same commit, before tagging.** v0.1.0 and v0.1.1 were both tagged without bumping it, so those binaries reported `0.1.0` in Cargo metadata regardless of their tag. Don't repeat that.
+- Order: edit `Cargo.toml` → `cargo build` (confirms `Cargo.lock` updates cleanly) → commit `chore(release): bump workspace version to vX.Y.Z` → push master → `git tag vX.Y.Z` → `git push origin vX.Y.Z`.
+- If you tagged without bumping, cancel the in-flight release run (`gh run cancel <id>`), bump + commit, delete the tag locally and on origin (`git push origin :refs/tags/vX.Y.Z`), then re-tag at the new commit and push.
+
 ## Twitter API
 - **ALWAYS use OAuth 1.0a for Twitter API calls, NEVER use bearer tokens.**
 - Bearer tokens are read-only. Posting tweets, replying, and all write operations require OAuth 1.0a (consumer key/secret + access token/secret).
