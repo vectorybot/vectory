@@ -86,6 +86,14 @@
 :IMPACT: Reduces regressions in player onboarding paths.
 :END:
 
+** TODO Accept =t:@<handle>= form in canonical commit format :cli:protocol:v0_1_3:
+:PROPERTIES:
+:OWNER: David / Claude
+:SOURCE: Round 74 UX observation, 2026-05-30 — bare =t:simonw= renders as plain text on Twitter; =t:@simonw= would be a clickable mention.
+:NEXT_ACTION: (1) CLI emits =t:@<handle>= instead of =t:<handle>=. (2) Validator parser in =vectory-internal= strips a leading =@= on =t:= so old and new commits both parse. (3) Update README canonical tweet format spec and the =w:vcty1...= doc comment in =crates/types/src/lib.rs= if needed. (4) Bump =workspace.package.version= to =0.1.3=, commit, tag =v0.1.3=, push — per AGENTS.md "Releases" order.
+:IMPACT: Twitter renders the target as a clickable mention and notifies the target account on every commit — small H1 (organic distribution) lever and better visual UX for onlookers. Backward-compatible because the validator accepts both forms.
+:END:
+
 * Blocked
 ** BLOCKED Public prediction rewards are not checkpointed yet :vec:rewards:
 :PROPERTIES:
