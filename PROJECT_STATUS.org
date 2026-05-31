@@ -32,9 +32,15 @@
 ** NEXT Add validator collection for public prediction commitments :validator:ingestion:
 :PROPERTIES:
 :OWNER: David
-:SOURCE: Public prediction protocol direction, 2026-05-12
-:NEXT_ACTION: Teach the validator to collect canonical =r:/t:/p:/w:/m:/n:/s:= tweets from replies, quotes, mentions, hashtags, and known player timelines.
-:IMPACT: Turns player-posted public predictions into accepted game entries.
+:SOURCE: Public prediction protocol direction, 2026-05-12; concrete gap surfaced in Round 74 (2026-05-31) — first real public-format commit posted (=davidynamic= quote-tweet =2060938353889968205=) and the validator has no parser to ingest it.
+:NEXT_ACTION: Build the public-prediction parser + ingestion path in =vectory-internal=. Concrete sub-steps:
+  1. Parser at =bin/vectory/src/round_commands.rs= (sibling to =parse_commitment_from_text= / =parse_reveal_from_text=): tolerate leading =@<handle>= tokens (strip them before parsing the first canonical field, as belt-and-suspenders against any reply that slipped through despite player-side quote-tweet guidance), then read =r:= / =t:= / =p:= / =w:= / =m:= / =n:= / =s:= line-by-line into a struct.
+  2. Signature verification: reconstruct =canonical_payload(protocol_version, chain_id, target_account_id, wallet, prediction_text, scoring_model_id)= (matches =vectory/bin/vectory/src/prediction_commitment.rs::canonical_payload=); decode signature as URL_SAFE_NO_PAD base64; decode =w:vcty1...= as bech32 with HRP =vcty= to recover the 32-byte Ed25519 pubkey (HRP must match before decoding the payload); =VerifyingKey::verify=.
+  3. Collector integration: extend =vectory round collect --phase commitments= so the public-prediction parser is tried alongside the legacy =hash:/address:= parser. Replies/quotes/mentions of the announcement tweet are the primary sources.
+  4. Round table schema: Round 74 row in Supabase already has empty =commitments= array; the ingestion path should append parsed+verified entries. Decide whether =Commitment.address= stays =Option<0x...>= (legacy) or grows a sibling =wallet: Option<vcty1...>= for public predictions, or whether public predictions get a separate =predictions= field.
+  5. Scoring: =vectory round score= currently scores from =reveals=. For public-prediction rounds, prediction text is in =p:= at commit time — no reveal phase. Adjust the scoring path to embed =p:= directly and compute cosine similarity against the target tweet's embedding.
+  6. Wire into round lifecycle: =commitmentsclosed= → straight to =scoring= (skip =revealsopen= / =revealsclosed= for public-prediction rounds).
+:IMPACT: Turns player-posted public predictions into accepted, signature-verified, machine-scored game entries. Until this lands, public-prediction rounds (e.g. Round 74) can only be scored manually.
 :END:
 
 ** NEXT Add signed native =$VCTY= checkpoints :vec:rewards:chain_mvp:
