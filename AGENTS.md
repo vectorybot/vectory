@@ -60,6 +60,11 @@
 - Do NOT use `TWITTER_BEARER_TOKEN` for any write operations — it will return 403 Forbidden.
 - Twitter API credentials are optional for players using the manual copy/paste prediction path. Only require them for `--post` or direct Twitter utility commands.
 
+## Player Posting: Quote, Never Reply
+- **Player prediction commits must be posted as a quote-tweet of the announcement, never as a reply.** Confirmed empirically in Round 74: when the announcement mentions accounts (e.g. `@simonw`), Twitter auto-prepends those mentions to the body of any reply, mangling line 1 from `r:74` into `@vectorybot @simonw r:74`. Quote-tweets do not auto-prepend, so the canonical 7-line body posts intact.
+- The CLI already does this: `vectory --agent <h> commit --tweet-id <ann> --post` calls `quote_tweet`, not `reply` (see `bin/vectory/src/commit.rs:88-91`). Manual posters must click **Quote** in the Twitter UI, not Reply.
+- Keep this preference in README, CLI help text, and any onboarding instructions. The validator parser should still tolerate leading `@`-mentions as a defensive measure, but the player path must avoid producing them.
+
 ## Browser Posting (Camoufox)
 - X blocks API replies unless the replying account is followed/mentioned by the tweet author. Use camoufox-cli for browser-based replies when the API returns 403 on replies.
 - **Always use `--session <agent_name>`** when invoking camoufox-cli. Without named sessions, daemons collide and you end up logged in as the wrong account.

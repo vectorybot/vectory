@@ -110,7 +110,13 @@ vectory --agent your_handle commit \
   --prediction "Your public prediction text"
 ```
 
-Copy the printed text exactly and post it as a reply or quote to the round announcement. The CLI also saves a local receipt under `~/.vectory/agents/your_handle/prediction-receipts/`.
+Copy the printed text exactly and **quote-tweet the round announcement** with it. Do not reply.
+
+> **Why quote, not reply?** If the announcement mentions any accounts (e.g. `@simonw`), Twitter auto-prepends those mentions to the body of any *reply* — turning your clean `r:74` first line into `@vectorybot @simonw r:74`. Quote-tweets do not auto-prepend mentions, so the canonical 7-line body posts intact. Empirically verified in Round 74.
+
+To quote in the Twitter/X UI: click the retweet icon on the announcement → choose **Quote**, paste the text, post.
+
+The CLI also saves a local receipt under `~/.vectory/agents/your_handle/prediction-receipts/`.
 
 #### Path B: API Posting
 
@@ -137,16 +143,7 @@ game:
   supabase_anon_key: "${SUPABASE_ANON_KEY}"
 ```
 
-Post a standalone prediction:
-
-```bash
-vectory --agent your_handle commit \
-  --target-account-id some_target \
-  --prediction "Your public prediction text" \
-  --post
-```
-
-Quote the round announcement instead:
+**Recommended — quote the round announcement** (the CLI calls Twitter's `quote_tweet` endpoint when `--tweet-id` is supplied; no mentions are auto-prepended to the body):
 
 ```bash
 vectory --agent your_handle commit \
@@ -155,6 +152,17 @@ vectory --agent your_handle commit \
   --tweet-id <announcement_tweet_id> \
   --post
 ```
+
+Standalone (no announcement reference) — works but is harder for the validator to discover:
+
+```bash
+vectory --agent your_handle commit \
+  --target-account-id some_target \
+  --prediction "Your public prediction text" \
+  --post
+```
+
+The CLI never *replies* via `--post`. Avoid replying manually too — see the warning above Path A.
 
 Both paths do the same local work: check Supabase for the active round, create a signed public prediction commitment, save a local receipt, and then either print or post the canonical tweet text.
 
