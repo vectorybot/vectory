@@ -134,6 +134,15 @@ Any other format (emoji labels, `Round:`, `Prediction:`, `Hash:`, `Salt:`, etc.)
 - [ ] Using the player CLI binary (from `vectory/`), not the validator binary
 - [ ] If using `--post`, fetch the tweet back and verify the author matches your handle
 
+### Prediction Text Guidelines
+
+Scoring is cosine similarity between the BGE-M3 embedding of the prediction text and the embedding of the target's actual post. The tweet budget for the prediction body is ~85 characters (the rest of the 280 is consumed by the canonical envelope: round id, target, wallet, model, nonce, signature). Every character should carry semantic signal.
+
+- **No meta-framing.** Do not write phrases like "New post on …", "Just tweeted about …", "X will say …". No one tweets these words themselves, so they add no semantic overlap with the target's post — they only dilute the embedding.
+- **No em dashes (—) or stylistic punctuation** unless they are genuinely part of the predicted content. They add no semantic weight and burn ~1 character each.
+- **Prefer concrete topic vocabulary** — product names, model names, version numbers, technical terms the target actually uses — over connective words ("and", "with", "about", commas, dashes).
+- **Match the target's voice.** Predict the *content* of the post (topics, entities, vocabulary), not a description of the post.
+
 ### Posting Strategies
 The validator collection strategy is to search multiple Twitter sources:
 - Direct replies to the announcement tweet
