@@ -82,6 +82,14 @@
 - Flow for every status change: post tweet FIRST, get tweet_id, THEN write to database with that tweet_id.
 - If a tweet fails, do NOT update the database. The system must not get out of sync.
 
+## Architecture Decision Records
+- Permanent design decisions that constrain code live in `docs/adr/`. See `docs/adr/README.md` for the index and conventions.
+- **Before editing code that carries a `// See docs/adr/NNNN` pointer, read that ADR.** It exists because the choice is non-obvious from the code and a future agent would otherwise re-litigate it (or worse, silently overturn it).
+- If your change overturns an ADR's decision, **write a new ADR** that supersedes the old one and mark the old one `Status: Superseded by NNNN`. Never silently change a decision an ADR records.
+- For new permanent decisions that constrain future work — wire formats, encoding choices, protocol invariants, durable schema choices — write a new ADR and add `// See docs/adr/NNNN` pointers at every code call site that depends on the decision.
+- The pointer convention is terse and stable: one short line at the call site. Example: `// Signatures use URL_SAFE_NO_PAD, not bech32. See docs/adr/0002.`
+- The bar for an ADR is "code references this rationale, or future code will." Most things don't meet that bar — they're either obvious from the code, transient (track in `PROJECT_STATUS.org`), or product-thesis-level (track in `THESIS.md`).
+
 ## Configuration & Secrets
 - Do not commit API keys or tokens. Use environment variables or local config files outside version control.
 - Treat `.env*`, `*.pem`, `*.key`, Supabase service keys, and Twitter access tokens as sensitive. Do not open, print, log, or copy secret values unless the task explicitly requires secret plumbing.

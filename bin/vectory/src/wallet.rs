@@ -40,11 +40,13 @@ impl Wallet {
     pub fn sign(&self, message: &[u8]) -> String {
         let signing_key = self.signing_key();
         let signature = signing_key.sign(message);
+        // Signatures use URL_SAFE_NO_PAD, not bech32. See docs/adr/0002.
         URL_SAFE_NO_PAD.encode(signature.to_bytes())
     }
 
     #[cfg(test)]
     pub fn verify(&self, message: &[u8], signature: &str) -> bool {
+        // Signature encoding must match sign() — see docs/adr/0002.
         let Ok(bytes) = URL_SAFE_NO_PAD.decode(signature) else {
             return false;
         };
@@ -74,6 +76,7 @@ impl Wallet {
     }
 }
 
+// Address encoding is bech32 with HRP "vcty". See docs/adr/0001.
 fn encode_address(public_key_bytes: &[u8; 32]) -> String {
     let hrp = Hrp::parse(ADDRESS_HRP).expect("static hrp is valid");
     bech32::encode::<Bech32>(hrp, public_key_bytes).expect("bech32 encoding of 32-byte pubkey")
