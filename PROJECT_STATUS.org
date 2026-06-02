@@ -29,18 +29,20 @@
 :IMPACT: Lets players generate public prediction commitments without Twitter API keys while still supporting direct API posting.
 :END:
 
-** NEXT Add validator collection for public prediction commitments :validator:ingestion:
+** DONE Add validator parser + scoring for public prediction commitments :validator:ingestion:
+CLOSED: [2026-06-02]
+:PROPERTIES:
+:OWNER: David / Claude
+:SOURCE: Public prediction protocol direction, 2026-05-12; gap surfaced in Round 74 (2026-05-31).
+:OUTCOME: Sub-steps 1–5 landed in vectory-internal commit =502a44d= (2026-06-02): new =public_prediction= module (parser + bech32 + URL_SAFE_NO_PAD + ed25519 verify), =round collect= now ingests public-prediction quotes with =signature_verified= field, welcome-mention auto-reply suppressed for public-prediction entries, new =round score-public= CLI command. Verified end-to-end against Round 74 fixture: davidynamic tweet =2060938353889968205= ingests with =signature_verified=true=; cosine sim against simonw post-close tweet =2061309486116266338= is =0.337= (sole verified entrant). Sub-step 6 (full Supabase lifecycle integration) split into a follow-up — see next entry.
+:END:
+
+** NEXT Wire public-prediction rounds into Supabase lifecycle :validator:lifecycle:
 :PROPERTIES:
 :OWNER: David
-:SOURCE: Public prediction protocol direction, 2026-05-12; concrete gap surfaced in Round 74 (2026-05-31) — first real public-format commit posted (=davidynamic= quote-tweet =2060938353889968205=) and the validator has no parser to ingest it.
-:NEXT_ACTION: Build the public-prediction parser + ingestion path in =vectory-internal=. Concrete sub-steps:
-  1. Parser at =bin/vectory/src/round_commands.rs= (sibling to =parse_commitment_from_text= / =parse_reveal_from_text=): tolerate leading =@<handle>= tokens (strip them before parsing the first canonical field, as belt-and-suspenders against any reply that slipped through despite player-side quote-tweet guidance), then read =r:= / =t:= / =p:= / =w:= / =m:= / =n:= / =s:= line-by-line into a struct.
-  2. Signature verification: reconstruct =canonical_payload(protocol_version, chain_id, target_account_id, wallet, prediction_text, scoring_model_id)= (matches =vectory/bin/vectory/src/prediction_commitment.rs::canonical_payload=); decode signature as URL_SAFE_NO_PAD base64; decode =w:vcty1...= as bech32 with HRP =vcty= to recover the 32-byte Ed25519 pubkey (HRP must match before decoding the payload); =VerifyingKey::verify=.
-  3. Collector integration: extend =vectory round collect --phase commitments= so the public-prediction parser is tried alongside the legacy =hash:/address:= parser. Replies/quotes/mentions of the announcement tweet are the primary sources.
-  4. Round table schema: Round 74 row in Supabase already has empty =commitments= array; the ingestion path should append parsed+verified entries. Decide whether =Commitment.address= stays =Option<0x...>= (legacy) or grows a sibling =wallet: Option<vcty1...>= for public predictions, or whether public predictions get a separate =predictions= field.
-  5. Scoring: =vectory round score= currently scores from =reveals=. For public-prediction rounds, prediction text is in =p:= at commit time — no reveal phase. Adjust the scoring path to embed =p:= directly and compute cosine similarity against the target tweet's embedding.
-  6. Wire into round lifecycle: =commitmentsclosed= → straight to =scoring= (skip =revealsopen= / =revealsclosed= for public-prediction rounds).
-:IMPACT: Turns player-posted public predictions into accepted, signature-verified, machine-scored game entries. Until this lands, public-prediction rounds (e.g. Round 74) can only be scored manually.
+:SOURCE: Sub-step 6 split out of the parser sprint (closed 2026-06-02 in commit =502a44d=).
+:NEXT_ACTION: Today the standalone =round score-public= command takes target text + entries JSON and returns rankings, sidestepping Supabase. Full lifecycle integration still needs: (a) Supabase write path that persists collected public-prediction commitments (=wallet=, =signature=, =signature_verified=, =prediction_text=) onto the round row; (b) =RoundStateTransition= that goes =commitmentsopen= → =commitmentsclosed= → =scoring= (skipping =revealsopen= / =revealsclosed=) for public-prediction rounds, distinguished e.g. by presence of any commitment with =signature_verified=true=; (c) modify =ScoreRound= to treat verified commitments as scoring inputs directly (or have the transition synthesize virtual reveal rows so =ScoreRound= runs unchanged).
+:IMPACT: Lets public-prediction rounds be scored through the same Supabase-driven lifecycle as legacy commit/reveal rounds. Until this lands, public-prediction rounds must be scored manually via =round score-public=.
 :END:
 
 ** NEXT Add signed native =$VCTY= checkpoints :vec:rewards:chain_mvp:
